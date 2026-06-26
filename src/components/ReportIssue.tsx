@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  MapContainer, 
-  TileLayer, 
-  Marker, 
-  useMap, 
-  useMapEvents 
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMap,
+  useMapEvents
 } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { 
-  Camera, 
-  Upload, 
-  Folder, 
-  MapPin, 
-  AlertTriangle, 
-  CheckCircle, 
-  Loader, 
-  Compass, 
+import {
+  Camera,
+  Upload,
+  Folder,
+  MapPin,
+  AlertTriangle,
+  CheckCircle,
+  Loader,
+  Compass,
   PlusCircle,
   HelpCircle,
   X,
@@ -25,11 +25,11 @@ import {
   Sparkles
 } from 'lucide-react';
 import { GoogleDriveFile } from '../types';
-import { 
-  uploadBinaryFile, 
-  listFolderFiles, 
-  getFileText, 
-  updateFileContent 
+import {
+  uploadBinaryFile,
+  listFolderFiles,
+  getFileText,
+  updateFileContent
 } from '../lib/drive';
 import { logNewReport } from '../lib/gamification';
 
@@ -249,7 +249,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
 
           // Update local preview to show the annotated image!
           setLocalFilePreview(data.annotatedImage);
-          
+
           // Auto-fill form fields
           setFormTitle(data.title || '');
           setFormDescription(data.description || '');
@@ -368,7 +368,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
   const [imageSource, setImageSource] = useState<'camera' | 'local' | 'drive'>('camera');
   const [localFile, setLocalFile] = useState<File | null>(null);
   const [localFilePreview, setLocalFilePreview] = useState<string | null>(null);
-  
+
   // Drive files image list
   const [driveImages, setDriveImages] = useState<GoogleDriveFile[]>([]);
   const [selectedDriveImageId, setSelectedDriveImageId] = useState<string>('');
@@ -427,12 +427,12 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
       (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        
+
         // Check if inside India bounds
-        const isInsideIndia = 
-          lat >= INDIA_BOUNDS.south && 
-          lat <= INDIA_BOUNDS.north && 
-          lng >= INDIA_BOUNDS.west && 
+        const isInsideIndia =
+          lat >= INDIA_BOUNDS.south &&
+          lat <= INDIA_BOUNDS.north &&
+          lng >= INDIA_BOUNDS.west &&
           lng <= INDIA_BOUNDS.east;
 
         if (isInsideIndia) {
@@ -476,16 +476,16 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
 
   // Handle click on map to position the report marker
   const handleMapClick = (lat: number, lng: number) => {
-    const isInsideIndia = 
-      lat >= INDIA_BOUNDS.south && 
-      lat <= INDIA_BOUNDS.north && 
-      lng >= INDIA_BOUNDS.west && 
+    const isInsideIndia =
+      lat >= INDIA_BOUNDS.south &&
+      lat <= INDIA_BOUNDS.north &&
+      lng >= INDIA_BOUNDS.west &&
       lng <= INDIA_BOUNDS.east;
 
     if (!isInsideIndia) {
-      setStatusMessage({ 
-        type: 'error', 
-        text: 'Warning: Location pins must be placed inside Indian territorial limits.' 
+      setStatusMessage({
+        type: 'error',
+        text: 'Warning: Location pins must be placed inside Indian territorial limits.'
       });
       return;
     }
@@ -545,7 +545,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
       if ((imageSource === 'camera' || imageSource === 'local') && localFile) {
         try {
           let fileToUpload: Blob | File = localFile;
-          
+
           if (detectionResult?.annotatedImage) {
             const matches = detectionResult.annotatedImage.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
             if (matches && matches.length === 3) {
@@ -578,7 +578,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
       const cleanTitle = formTitle.replace(/,/g, ' ').replace(/\n/g, ' ').trim();
       const cleanDesc = formDescription.replace(/,/g, ' ').replace(/\n/g, ' ').trim();
       const categoryInfo = inferCategory(cleanTitle, cleanDesc);
-      
+
       const newRecord = {
         Id: reportId,
         Title: cleanTitle,
@@ -695,11 +695,10 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
                 setMapCenter([city.lat, city.lng]);
                 setMapZoom(city.zoom);
               }}
-              className={`px-2 py-1 rounded text-[10px] font-semibold transition-all cursor-pointer ${
-                activeCity.name === city.name
+              className={`px-2 py-1 rounded text-[10px] font-semibold transition-all cursor-pointer ${activeCity.name === city.name
                   ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-3xs font-extrabold'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white'
-              }`}
+                }`}
             >
               {city.name.replace(' (HQ)', '')}
             </button>
@@ -746,7 +745,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
             >
               <ChangeView center={mapCenter} zoom={mapZoom} />
               <MapClickHandler onClick={handleMapClick} />
-              
+
               <TileLayer
                 attribution={darkMode ? '&copy; <a href="https://carto.com/">CARTO</a> contributors' : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}
                 url={darkMode ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
@@ -756,8 +755,8 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
               {reportCoords && (() => {
                 const category = inferCategory(formTitle, formDescription);
                 return (
-                  <Marker 
-                    position={[reportCoords.lat, reportCoords.lng]} 
+                  <Marker
+                    position={[reportCoords.lat, reportCoords.lng]}
                     icon={createCustomMarkerIcon(category.color, category.emoji)}
                   />
                 );
@@ -765,8 +764,8 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
 
               {/* Render User GPS Marker if Active */}
               {userLiveCoords && (
-                <Marker 
-                  position={[userLiveCoords.lat, userLiveCoords.lng]} 
+                <Marker
+                  position={[userLiveCoords.lat, userLiveCoords.lng]}
                   icon={userGpsIcon}
                 />
               )}
@@ -821,11 +820,10 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
           </div>
 
           {statusMessage && (
-            <div className={`p-3 rounded-xl text-xs font-medium mb-4 flex items-start gap-2.5 leading-relaxed border transition-colors ${
-              statusMessage.type === 'success' 
-                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-300' 
+            <div className={`p-3 rounded-xl text-xs font-medium mb-4 flex items-start gap-2.5 leading-relaxed border transition-colors ${statusMessage.type === 'success'
+                ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/40 text-emerald-800 dark:text-emerald-300'
                 : 'bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/40 text-rose-800 dark:text-rose-300'
-            }`}>
+              }`}>
               {statusMessage.type === 'success' ? (
                 <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
               ) : (
@@ -939,11 +937,10 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
                 <button
                   type="button"
                   onClick={() => { setImageSource('camera'); handleClearImage(); }}
-                  className={`flex-1 py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                    imageSource === 'camera' 
-                      ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-3xs' 
+                  className={`flex-1 py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer ${imageSource === 'camera'
+                      ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-3xs'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   <Camera className="w-3.5 h-3.5 text-indigo-500" />
                   <span>Camera</span>
@@ -951,11 +948,10 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
                 <button
                   type="button"
                   onClick={() => { setImageSource('local'); handleClearImage(); }}
-                  className={`flex-1 py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                    imageSource === 'local' 
-                      ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-3xs' 
+                  className={`flex-1 py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer ${imageSource === 'local'
+                      ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-3xs'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   <Upload className="w-3.5 h-3.5 text-indigo-500" />
                   <span>Device Folder</span>
@@ -963,11 +959,10 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
                 <button
                   type="button"
                   onClick={() => { setImageSource('drive'); handleClearImage(); }}
-                  className={`flex-1 py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer ${
-                    imageSource === 'drive' 
-                      ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-3xs' 
+                  className={`flex-1 py-1.5 rounded transition-all flex items-center justify-center gap-1 cursor-pointer ${imageSource === 'drive'
+                      ? 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white shadow-3xs'
                       : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
+                    }`}
                 >
                   <Folder className="w-3.5 h-3.5 text-indigo-500" />
                   <span>Drive Folder</span>
@@ -1011,93 +1006,93 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
                     <Upload className="w-4 h-4 text-indigo-650" />
                     <span>{localFile ? 'Change File' : 'Browse Files in Folder'}</span>
                   </label>
-                      {imageSource === 'drive' && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <select
-                      value={selectedDriveImageId}
-                      onChange={(e) => setSelectedDriveImageId(e.target.value)}
-                      disabled={loadingDriveImages || driveImages.length === 0}
-                      className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 focus:outline-none p-2 rounded-lg text-slate-705 dark:text-slate-300 font-semibold"
-                    >
-                      {loadingDriveImages ? (
-                        <option>Scanning drive folder images...</option>
-                      ) : driveImages.length === 0 ? (
-                        <option>No images found in UrbanPulse</option>
+                  {imageSource === 'drive' && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <select
+                          value={selectedDriveImageId}
+                          onChange={(e) => setSelectedDriveImageId(e.target.value)}
+                          disabled={loadingDriveImages || driveImages.length === 0}
+                          className="w-full text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 focus:outline-none p-2 rounded-lg text-slate-705 dark:text-slate-300 font-semibold"
+                        >
+                          {loadingDriveImages ? (
+                            <option>Scanning drive folder images...</option>
+                          ) : driveImages.length === 0 ? (
+                            <option>No images found in UrbanPulse</option>
+                          ) : (
+                            <>
+                              <option value="" className="bg-white dark:bg-slate-900">-- Choose file from UrbanPulse folder --</option>
+                              {driveImages.map(img => (
+                                <option key={img.id} value={img.id} className="bg-white dark:bg-slate-900">{img.name}</option>
+                              ))}
+                            </>
+                          )}
+                        </select>
+
+                        <button
+                          type="button"
+                          onClick={loadDriveImages}
+                          className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0 cursor-pointer"
+                          title="Reload folder photos list"
+                        >
+                          {loadingDriveImages ? (
+                            <Loader className="w-3.5 h-3.5 animate-spin text-slate-500" />
+                          ) : (
+                            <Folder className="w-3.5 h-3.5" />
+                          )}
+                        </button>
+                      </div>
+                      {driveImages.length > 0 && !selectedDriveImageId && (
+                        <p className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">Select any historical photo previously stored inside the UrbanPulse workspace.</p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Show preview if file selected */}
+                  {localFilePreview && (imageSource === 'camera' || imageSource === 'local') && (
+                    <div className="relative w-full h-40 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-inner">
+                      {isDetecting ? (
+                        <div className="flex flex-col items-center gap-2 text-white text-center">
+                          <Loader className="w-5 h-5 animate-spin text-indigo-500" />
+                          <span className="text-[10px] font-bold text-slate-350">Scanning Road surface (YOLO/Gemini)...</span>
+                        </div>
                       ) : (
                         <>
-                          <option value="" className="bg-white dark:bg-slate-900">-- Choose file from UrbanPulse folder --</option>
-                          {driveImages.map(img => (
-                            <option key={img.id} value={img.id} className="bg-white dark:bg-slate-900">{img.name}</option>
-                          ))}
+                          <img src={localFilePreview} alt="Local Capture Preview" className="h-full object-contain" />
+                          <button
+                            type="button"
+                            onClick={handleClearImage}
+                            className="absolute top-2 right-2 p-1 bg-slate-900/80 text-white rounded-full hover:bg-slate-950 transition-colors cursor-pointer"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+
+                          {detectionResult && (
+                            <div className="absolute bottom-2 left-2 bg-indigo-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">
+                              <Sparkles className="w-2.5 h-2.5 text-indigo-200 animate-pulse" />
+                              <span>Detected: {detectionResult.pothole_count} Pothole(s) ({detectionResult.damage_percentage}% Damage Area)</span>
+                            </div>
+                          )}
                         </>
                       )}
-                    </select>
-
-                    <button
-                      type="button"
-                      onClick={loadDriveImages}
-                      className="p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0 cursor-pointer"
-                      title="Reload folder photos list"
-                    >
-                      {loadingDriveImages ? (
-                        <Loader className="w-3.5 h-3.5 animate-spin text-slate-500" />
-                      ) : (
-                        <Folder className="w-3.5 h-3.5" />
-                      )}
-                    </button>
-                  </div>
-                  {driveImages.length > 0 && !selectedDriveImageId && (
-                    <p className="text-[9px] text-slate-400 dark:text-slate-500 font-medium">Select any historical photo previously stored inside the UrbanPulse workspace.</p>
-                  )}
-                </div>
-              )}
-
-              {/* Show preview if file selected */}
-              {localFilePreview && (imageSource === 'camera' || imageSource === 'local') && (
-                <div className="relative w-full h-40 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-inner">
-                  {isDetecting ? (
-                    <div className="flex flex-col items-center gap-2 text-white text-center">
-                      <Loader className="w-5 h-5 animate-spin text-indigo-500" />
-                      <span className="text-[10px] font-bold text-slate-350">Scanning Road surface (YOLO/Gemini)...</span>
                     </div>
-                  ) : (
-                    <>
-                      <img src={localFilePreview} alt="Local Capture Preview" className="h-full object-contain" />
+                  )}
+
+                  {/* Selected Drive Image indicator */}
+                  {imageSource === 'drive' && selectedDriveImageId && (
+                    <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-150 dark:border-indigo-900/40 rounded-lg text-[10px] font-bold text-indigo-800 dark:text-indigo-400 flex items-center justify-between">
+                      <span className="truncate max-w-[200px]">
+                        Selected: {driveImages.find(i => i.id === selectedDriveImageId)?.name || 'Image'}
+                      </span>
                       <button
                         type="button"
                         onClick={handleClearImage}
-                        className="absolute top-2 right-2 p-1 bg-slate-900/80 text-white rounded-full hover:bg-slate-950 transition-colors cursor-pointer"
+                        className="text-indigo-650 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 cursor-pointer"
                       >
-                        <X className="w-4 h-4" />
+                        ✕ Clear Selection
                       </button>
-                      
-                      {detectionResult && (
-                        <div className="absolute bottom-2 left-2 bg-indigo-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">
-                          <Sparkles className="w-2.5 h-2.5 text-indigo-200 animate-pulse" />
-                          <span>Detected: {detectionResult.pothole_count} Pothole(s) ({detectionResult.damage_percentage}% Damage Area)</span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )}
-
-              {/* Selected Drive Image indicator */}
-              {imageSource === 'drive' && selectedDriveImageId && (
-                <div className="p-2 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-150 dark:border-indigo-900/40 rounded-lg text-[10px] font-bold text-indigo-800 dark:text-indigo-400 flex items-center justify-between">
-                  <span className="truncate max-w-[200px]">
-                    Selected: {driveImages.find(i => i.id === selectedDriveImageId)?.name || 'Image'}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleClearImage}
-                    className="text-indigo-650 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200 cursor-pointer"
-                  >
-                    ✕ Clear Selection
-                  </button>
-                </div>
-              )}            </div>
+                    </div>
+                  )}            </div>
               )}
             </div>
 

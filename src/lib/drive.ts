@@ -147,7 +147,7 @@ async function handleApiError(res: Response, fallbackPrefix: string): Promise<ne
  */
 export async function findUrbanPulseFolder(token: string): Promise<ProjectFolder | null> {
   if (isSandboxActive()) {
-    return { id: 'sandbox-folder', name: 'UrbanPulse (Sandbox)' };
+    return { id: 'sandbox-folder', name: 'UrbanPulse' };
   }
 
   const q = encodeURIComponent("name contains 'UrbanPulse' and mimeType = 'application/vnd.google-apps.folder' and trashed = false");
@@ -170,11 +170,11 @@ export async function findUrbanPulseFolder(token: string): Promise<ProjectFolder
     // Folder not found - fallback to sandbox
     console.warn('UrbanPulse folder not found in Drive. Automatically falling back to Local Sandbox.');
     activateSandbox();
-    return { id: 'sandbox-folder', name: 'UrbanPulse (Sandbox)' };
+    return { id: 'sandbox-folder', name: 'UrbanPulse' };
   } catch (error) {
     console.error('Error finding UrbanPulse folder, switching to Local Sandbox:', error);
     activateSandbox();
-    return { id: 'sandbox-folder', name: 'UrbanPulse (Sandbox)' };
+    return { id: 'sandbox-folder', name: 'UrbanPulse' };
   }
 }
 
@@ -407,7 +407,7 @@ export async function uploadBinaryFile(
 export async function createUrbanPulseFolderAndSamples(token: string): Promise<ProjectFolder> {
   if (isSandboxActive()) {
     activateSandbox();
-    return { id: 'sandbox-folder', name: 'UrbanPulse (Sandbox)' };
+    return { id: 'sandbox-folder', name: 'UrbanPulse' };
   }
 
   try {
@@ -459,7 +459,7 @@ export async function createUrbanPulseFolderAndSamples(token: string): Promise<P
   } catch (error) {
     console.error('Error creating folder and samples, falling back to Local Sandbox:', error);
     activateSandbox();
-    return { id: 'sandbox-folder', name: 'UrbanPulse (Sandbox)' };
+    return { id: 'sandbox-folder', name: 'UrbanPulse' };
   }
 }
 

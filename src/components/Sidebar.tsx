@@ -183,11 +183,7 @@ export default function Sidebar({
                 <p className={`text-sm font-semibold truncate max-w-[140px] transition-colors ${darkMode ? 'text-slate-200' : 'text-slate-800'}`}>
                   {folder ? folder.name : 'No Folder Selected'}
                 </p>
-                {folder?.id === 'sandbox-folder' && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-amber-500/10 text-amber-500 border border-amber-500/20">
-                    Sandbox
-                  </span>
-                )}
+
               </div>
             </div>
           </div>
@@ -267,7 +263,7 @@ export default function Sidebar({
               id="sidebar-view-report-tab"
             >
               <PlusCircle className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-              <span className="truncate">Report</span>
+              <span className="truncate">Reports</span>
             </button>
           </div>
         </div>

@@ -147,7 +147,7 @@ Raw Description: "${description}"`;
       }
 
       // Format summary of reports
-      const summaryText = reports.slice(0, 30).map(r => 
+      const summaryText = reports.slice(0, 30).map(r =>
         `- [${r.Severity || 'Moderate'}] Title: ${r.Title || 'Untitled'}. Status: ${r.Status || 'Reported'}. Desc: ${r.Description || 'None'}`
       ).join("\n");
 
@@ -254,7 +254,7 @@ Please draft a professional 3-sentence summary highlighting:
         try {
           fs.unlinkSync(tempInputPath);
           fs.unlinkSync(tempOutputPath);
-        } catch (cleanErr) {}
+        } catch (cleanErr) { }
 
         return res.json({
           provider: "YOLOv8 Local Model",
@@ -301,7 +301,7 @@ Please draft a professional 3-sentence summary highlighting:
 
         try {
           fs.unlinkSync(tempInputPath);
-        } catch (cleanErr) {}
+        } catch (cleanErr) { }
 
         return res.json({
           provider: "Gemini Vision AI (Fallback)",
