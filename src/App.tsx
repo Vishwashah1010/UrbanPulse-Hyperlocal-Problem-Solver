@@ -10,7 +10,8 @@ import {
   LogIn,
   Activity,
   Sun,
-  Moon
+  Moon,
+  Menu
 } from 'lucide-react';
 import { initAuth, googleSignIn, logout, emailSignIn, emailSignUp } from './lib/firebase';
 import { 
@@ -83,6 +84,9 @@ export default function App() {
   // Sample creation state
   const [isCreatingSamples, setIsCreatingSamples] = useState(false);
   const [sampleError, setSampleError] = useState<string | null>(null);
+
+  // Mobile sidebar state
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Initialize auth state listener
   useEffect(() => {
@@ -493,12 +497,23 @@ export default function App() {
     <div className={`flex h-screen overflow-hidden font-sans antialiased transition-colors duration-300 ${
       darkMode ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-800'
     }`}>
+      {/* Mobile Sidebar Backdrop Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs backdrop-fade-in lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar Explorer */}
       <Sidebar
         folder={folder}
         files={files}
         selectedFileId={selectedFile ? selectedFile.id : null}
-        onSelectFile={handleSelectFile}
+        onSelectFile={(file) => {
+          handleSelectFile(file);
+          setSidebarOpen(false);
+        }}
         onReload={() => token && loadWorkspace(token)}
         onCreateSamples={handleCreateSamples}
         isCreatingSamples={isCreatingSamples}
@@ -506,15 +521,47 @@ export default function App() {
         user={user}
         onSignOut={handleSignOut}
         activeView={activeView}
-        onChangeView={setActiveView}
+        onChangeView={(view) => {
+          setActiveView(view);
+          setSidebarOpen(false);
+        }}
         darkMode={darkMode}
         onToggleTheme={toggleDarkMode}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
       {/* Main Panel Content Previewer */}
       <main className={`flex-1 flex flex-col h-full overflow-hidden transition-colors duration-300 ${
         darkMode ? 'bg-slate-900/40' : 'bg-slate-50'
       }`} id="main-content-panel">
+        {/* Mobile Header Bar with Hamburger */}
+        <div className={`h-12 flex items-center px-4 gap-3 border-b shrink-0 lg:hidden transition-colors ${
+          darkMode ? 'bg-slate-950 border-slate-900 text-slate-100' : 'bg-white border-slate-100 text-slate-800'
+        }`}>
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              darkMode ? 'hover:bg-slate-900 text-slate-400' : 'hover:bg-slate-50 text-slate-600'
+            }`}
+            id="mobile-menu-toggle"
+            aria-label="Open sidebar menu"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          <div className="flex items-center gap-2 min-w-0">
+            <div className={`p-1 rounded-lg ${
+              darkMode ? 'bg-indigo-950/40 text-indigo-400' : 'bg-indigo-50 text-indigo-600'
+            }`}>
+              <Building2 className="w-4 h-4" />
+            </div>
+            <span className={`text-xs font-bold truncate ${
+              darkMode ? 'text-slate-200' : 'text-slate-800'
+            }`}>
+              {folder ? folder.name : 'UrbanPulse'}
+            </span>
+          </div>
+        </div>
         {isLoadingFolder ? (
           <div className="flex-1 flex flex-col items-center justify-center p-8 select-none">
             <div className="w-12 h-12 rounded-full border-4 border-indigo-100 border-t-indigo-600 animate-spin mb-4"></div>
