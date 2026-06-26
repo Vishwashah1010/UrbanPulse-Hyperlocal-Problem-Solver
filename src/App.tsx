@@ -97,27 +97,14 @@ export default function App() {
         loadWorkspace(accessToken);
       },
       () => {
-        if (isSandboxActive()) {
-          const authUser: AuthUser = {
-            uid: 'sandbox',
-            email: 'sandbox@urbanpulse.local',
-            displayName: 'Sandbox User',
-            photoURL: null,
-          };
-          setUser(authUser);
-          setToken('sandbox-token');
-          setNeedsAuth(false);
-          loadWorkspace('sandbox-token');
-        } else {
-          setNeedsAuth(true);
-          setUser(null);
-          setToken(null);
-          setFolder(null);
-          setFiles([]);
-          setSelectedFile(null);
-          setSelectedFileContent(null);
-          setSelectedFileBlob(null);
-        }
+        setNeedsAuth(true);
+        setUser(null);
+        setToken(null);
+        setFolder(null);
+        setFiles([]);
+        setSelectedFile(null);
+        setSelectedFileContent(null);
+        setSelectedFileBlob(null);
       }
     );
     return () => unsubscribe();
@@ -226,19 +213,6 @@ export default function App() {
     }
   };
 
-  const handleSandboxLogin = () => {
-    activateSandbox();
-    const authUser: AuthUser = {
-      uid: 'sandbox',
-      email: 'sandbox@urbanpulse.local',
-      displayName: 'Sandbox User',
-      photoURL: null,
-    };
-    setUser(authUser);
-    setToken('sandbox-token');
-    setNeedsAuth(false);
-    loadWorkspace('sandbox-token');
-  };
 
   const handleSignOut = async () => {
     try {
@@ -351,18 +325,6 @@ export default function App() {
               <span>{isLoggingIn ? 'Connecting Auth...' : 'Sign in with Google'}</span>
             </button>
 
-            {/* Local Sandbox fallback button */}
-            <button
-              onClick={handleSandboxLogin}
-              className={`w-full max-w-[280px] mt-3.5 flex items-center justify-center gap-2 px-5 py-3 border border-dashed rounded-xl shadow-xs hover:shadow-sm transition-all text-xs font-semibold select-none cursor-pointer ${
-                darkMode
-                  ? 'bg-indigo-950/20 hover:bg-indigo-950/40 border-indigo-500/30 text-indigo-300 hover:text-indigo-200'
-                  : 'bg-indigo-50/40 hover:bg-indigo-100/60 border-indigo-200 text-indigo-700 hover:text-indigo-800'
-              }`}
-              id="sandbox-sign-in-btn"
-            >
-              <span>Continue in Local Sandbox Mode</span>
-            </button>
 
             <div className={`mt-8 border-t pt-6 w-full grid grid-cols-2 gap-4 text-center transition-colors ${
               darkMode ? 'border-slate-800' : 'border-slate-100'
