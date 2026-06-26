@@ -1,0 +1,6 @@
+{
+  "name": "UrbanPulse Drive Previewer",
+  "description": "Explore and preview files, metrics, and documents from your UrbanPulse project folder in Google Drive.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
