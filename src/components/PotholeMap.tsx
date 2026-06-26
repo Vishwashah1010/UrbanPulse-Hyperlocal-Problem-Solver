@@ -906,8 +906,8 @@ export default function PotholeMap({
         {/* Right Side: Filters, Controls & Report Form */}
         <div className="w-full lg:w-80 shrink-0 flex flex-col gap-5">
           {/* City Jumper */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs">
-            <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs">
+            <h3 className="text-xs font-bold text-slate-700 dark:text-slate-350 flex items-center gap-1.5">
               <Compass className="w-4 h-4 text-indigo-500 stroke-[1.5]" />
               Jump to India Hub
             </h3>
@@ -919,7 +919,7 @@ export default function PotholeMap({
                   className={`px-2.5 py-1.5 text-[10px] font-bold rounded-lg border text-center transition-all cursor-pointer ${
                     activeCity.name === c.name
                       ? 'bg-indigo-600 text-white border-indigo-600 shadow-xs'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                      : 'bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'
                   }`}
                 >
                   {c.name}
@@ -930,15 +930,15 @@ export default function PotholeMap({
 
           {/* Filters or Details card */}
           {!isReporting && (
-            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-2xs flex-1 flex flex-col min-h-0">
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-2xs flex-1 flex flex-col min-h-0">
               {selectedReport ? (
                 /* Selected Pothole/Hazard Details Screen */
                 <div className="flex-1 flex flex-col min-h-0">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hazard Details</span>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Hazard Details</span>
                     <button
                       onClick={() => setSelectedReport(null)}
-                      className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 cursor-pointer"
+                      className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 dark:text-indigo-405 dark:hover:text-indigo-300 cursor-pointer"
                     >
                       ← Back to list
                     </button>
@@ -961,18 +961,18 @@ export default function PotholeMap({
                     </div>
 
                     {/* AI-Powered Predictive Resolution Timeline */}
-                    <div className="bg-gradient-to-r from-indigo-50/70 to-purple-50/70 border border-indigo-100/80 rounded-xl p-3.5 space-y-2">
-                      <div className="flex items-center gap-1.5 text-indigo-700">
+                    <div className="bg-gradient-to-r from-indigo-50/70 to-purple-50/70 dark:from-indigo-950/20 dark:to-purple-950/20 border border-indigo-100/80 dark:border-indigo-900/50 rounded-xl p-3.5 space-y-2">
+                      <div className="flex items-center gap-1.5 text-indigo-700 dark:text-indigo-300">
                         <Sparkles className="w-3.5 h-3.5 fill-indigo-500/20 text-indigo-600 animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-wider">AI Predictive Resolution SLA</span>
                       </div>
                       
                       <div className="flex flex-col gap-1.5 text-xs">
-                        <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 font-semibold">
                           <Clock className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                           <span>Timeline: {selectedReport.PredictedSLA || 'Typically fixed within 48 hours'}</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500 font-medium">
+                        <div className="grid grid-cols-2 gap-2 text-[10px] text-slate-500 dark:text-slate-400 font-medium">
                           <div className="flex items-center gap-1">
                             <Zap className="w-3 h-3 text-purple-500" />
                             <span>Urgency: {selectedReport.UrgencyLevel || 'Moderate'}</span>
@@ -987,13 +987,13 @@ export default function PotholeMap({
 
                     {/* Consensus Verification & Consensus Score */}
                     {selectedReport.Status !== 'Closed' && (
-                      <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
+                      <div className="bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-xl p-3.5 space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1">
                             <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
                             Community Verification
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400">Consensus weight</span>
+                          <span className="text-[10px] font-bold text-slate-450 dark:text-slate-550">Consensus weight</span>
                         </div>
 
                         {/* Confidence Score Gauge */}
@@ -1005,14 +1005,14 @@ export default function PotholeMap({
                           return (
                             <div className="space-y-1">
                               <div className="flex justify-between text-xs font-black">
-                                <span className={pct >= 70 ? 'text-emerald-600' : pct >= 40 ? 'text-amber-600' : 'text-rose-600'}>
+                                <span className={pct >= 70 ? 'text-emerald-600 dark:text-emerald-405' : pct >= 40 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-455'}>
                                   {pct}% Confidence
                                 </span>
-                                <span className="text-slate-400 font-medium text-[10px]">
+                                <span className="text-slate-450 dark:text-slate-500 font-medium text-[10px]">
                                   {up} Up / {tot} Total Votes
                                 </span>
                               </div>
-                              <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden flex">
+                              <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden flex">
                                 <div className="bg-emerald-500 h-full transition-all duration-300" style={{ width: `${pct}%` }}></div>
                                 <div className="bg-rose-500 h-full transition-all duration-300" style={{ width: `${100 - pct}%` }}></div>
                               </div>
@@ -1024,7 +1024,7 @@ export default function PotholeMap({
                         <div className="flex gap-2">
                           <button
                             onClick={() => handleVote(selectedReport.Id, true)}
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-250 hover:border-slate-350 text-slate-700 rounded-xl text-[10px] font-bold shadow-3xs cursor-pointer transition-colors active:scale-95 duration-100"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-250 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-[10px] font-bold shadow-3xs cursor-pointer transition-colors active:scale-95 duration-100"
                             title="Verify you saw this issue to earn Civic Karma points"
                           >
                             <ThumbsUp className="w-3 h-3 text-emerald-500 fill-emerald-500/10" />
@@ -1032,7 +1032,7 @@ export default function PotholeMap({
                           </button>
                           <button
                             onClick={() => handleVote(selectedReport.Id, false)}
-                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-250 hover:border-slate-350 text-slate-700 rounded-xl text-[10px] font-bold shadow-3xs cursor-pointer transition-colors active:scale-95 duration-100"
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 border border-slate-250 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-[10px] font-bold shadow-3xs cursor-pointer transition-colors active:scale-95 duration-100"
                             title="Flag this as resolved to archive it"
                           >
                             <ThumbsDown className="w-3 h-3 text-rose-500 fill-rose-500/10" />
@@ -1044,8 +1044,8 @@ export default function PotholeMap({
 
                     {/* Title & Description block */}
                     <div>
-                      <h4 className="text-sm font-bold text-slate-900 leading-snug">{selectedReport.Title}</h4>
-                      <p className="text-xs text-slate-500 mt-2 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-100">
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">{selectedReport.Title}</h4>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed bg-slate-50 dark:bg-slate-950/20 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
                         {selectedReport.Description || 'No description provided.'}
                       </p>
                     </div>
@@ -1053,12 +1053,12 @@ export default function PotholeMap({
                     {/* Evidence Photo */}
                     {selectedReport.ImageId && (
                       <div>
-                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Evidence Photo</label>
-                        <div className="rounded-xl overflow-hidden border border-slate-200 bg-slate-50 h-40 flex items-center justify-center relative shadow-xs">
+                        <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1.5">Evidence Photo</label>
+                        <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/30 h-40 flex items-center justify-center relative shadow-xs">
                           {isDownloadingImage ? (
                             <div className="flex flex-col items-center gap-1.5">
                               <Loader className="w-5 h-5 text-indigo-500 animate-spin" />
-                              <span className="text-[9px] text-slate-400 font-bold">Downloading from Drive...</span>
+                              <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">Downloading from Drive...</span>
                             </div>
                           ) : selectedReportImageUrl ? (
                             <img 
@@ -1068,7 +1068,7 @@ export default function PotholeMap({
                               referrerPolicy="no-referrer"
                             />
                           ) : (
-                            <div className="text-center p-3 text-slate-400 text-xs font-semibold">
+                            <div className="text-center p-3 text-slate-400 dark:text-slate-500 text-xs font-semibold">
                               Failed to load hazard photo
                             </div>
                           )}
@@ -1077,31 +1077,31 @@ export default function PotholeMap({
                     )}
 
                     {/* Location Metadata */}
-                    <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-3 space-y-1.5 text-[10px] font-medium text-slate-500">
+                    <div className="bg-slate-50/50 dark:bg-slate-950/20 border border-slate-100 dark:border-slate-800/60 rounded-xl p-3 space-y-1.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
                       <div className="flex justify-between">
                         <span>Report ID</span>
-                        <span className="font-mono text-slate-700">{selectedReport.Id}</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300">{selectedReport.Id}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Reporter</span>
-                        <span className="text-slate-700 truncate max-w-[120px]">{selectedReport.ReporterId || 'resident'}</span>
+                        <span className="text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{selectedReport.ReporterId || 'resident'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Coordinates</span>
-                        <span className="font-mono text-slate-700">{parseFloat(selectedReport.Latitude).toFixed(4)}, {parseFloat(selectedReport.Longitude).toFixed(4)}</span>
+                        <span className="font-mono text-slate-700 dark:text-slate-300">{parseFloat(selectedReport.Latitude).toFixed(4)}, {parseFloat(selectedReport.Longitude).toFixed(4)}</span>
                       </div>
                       {selectedReport.ReportedAt && (
                         <div className="flex justify-between">
                           <span>Reported On</span>
-                          <span className="text-slate-700">{new Date(selectedReport.ReportedAt).toLocaleString()}</span>
+                          <span className="text-slate-700 dark:text-slate-300">{new Date(selectedReport.ReportedAt).toLocaleString()}</span>
                         </div>
                       )}
                       {selectedReport.StatusHistory && (
-                        <div className="flex flex-col gap-1 border-t border-slate-200/60 pt-1.5 mt-1">
-                          <span className="text-[9px] uppercase font-bold text-slate-400 flex items-center gap-1">
+                        <div className="flex flex-col gap-1 border-t border-slate-200/60 dark:border-slate-800/80 pt-1.5 mt-1">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 flex items-center gap-1">
                             <History className="w-2.5 h-2.5" /> State Audit Log
                           </span>
-                          <span className="text-[9px] font-mono text-slate-600 truncate">{selectedReport.StatusHistory}</span>
+                          <span className="text-[9px] font-mono text-slate-600 dark:text-slate-400 truncate">{selectedReport.StatusHistory}</span>
                         </div>
                       )}
                     </div>
@@ -1146,7 +1146,7 @@ export default function PotholeMap({
                     <span>Report Hazard at Map Center</span>
                   </button>
 
-                  <h3 className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <h3 className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                     <Filter className="w-4 h-4 text-slate-500 stroke-[1.5]" />
                     Filter Infrastructure Logs
                   </h3>
@@ -1154,16 +1154,16 @@ export default function PotholeMap({
                   <div className="mt-4 space-y-3.5">
                     {/* Severity selector */}
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Severity Level</label>
+                      <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1.5">Severity Level</label>
                       <div className="flex flex-wrap gap-1">
                         {['All', 'Critical', 'High', 'Moderate', 'Low'].map((sev) => (
                           <button
                             key={sev}
                             onClick={() => setSelectedSeverity(sev)}
-                            className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-colors border cursor-pointer ${
+                            className={`px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-colors border cursor-pointer ${
                               selectedSeverity === sev
-                                ? 'bg-slate-800 text-white border-slate-800'
-                                : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                                ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 border-slate-800 dark:border-slate-200 shadow-xs'
+                                : 'bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'
                             }`}
                           >
                             {sev}
@@ -1174,16 +1174,16 @@ export default function PotholeMap({
 
                     {/* Status selector */}
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">Repair Status</label>
+                      <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-1.5">Repair Status</label>
                       <div className="flex flex-wrap gap-1">
                         {['All', 'Reported', 'In Progress', 'Resolved'].map((stat) => (
                           <button
                             key={stat}
                             onClick={() => setSelectedStatus(stat)}
-                            className={`px-2 py-1 text-[10px] font-bold rounded-lg transition-colors border cursor-pointer ${
+                            className={`px-2.5 py-1.5 text-[10px] font-bold rounded-lg transition-colors border cursor-pointer ${
                               selectedStatus === stat
-                                ? 'bg-slate-800 text-white border-slate-800'
-                                : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border-slate-200'
+                                ? 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 border-slate-800 dark:border-slate-200 shadow-xs'
+                                : 'bg-slate-50 dark:bg-slate-950/40 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800'
                             }`}
                           >
                             {stat}
@@ -1194,49 +1194,65 @@ export default function PotholeMap({
                   </div>
 
                   {/* Summary Stats / Issue list */}
-                  <div className="mt-5 border-t border-slate-100 pt-4 flex-1 overflow-y-auto">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">
+                  <div className="mt-5 border-t border-slate-100 dark:border-slate-800 pt-4 flex-1 overflow-y-auto">
+                    <label className="text-[10px] font-bold text-slate-450 dark:text-slate-550 uppercase tracking-wider block mb-2">
                       Active Issues ({filteredReports.length})
                     </label>
                     <div className="space-y-1.5">
-                      {filteredReports.slice(0, 5).map((r) => (
+                      {filteredReports.map((r) => (
                         <div 
                           key={r.Id}
-                          onClick={() => {
-                            setSelectedReport(r);
-                            setMapCenter({ lat: parseFloat(r.Latitude), lng: parseFloat(r.Longitude) });
-                            setMapZoom(14);
-                          }}
-                          className="p-2.5 hover:bg-slate-50 border border-slate-150 hover:border-slate-300 rounded-xl transition-all cursor-pointer flex items-start gap-2 text-left"
+                          className="p-2.5 hover:bg-slate-50 dark:hover:bg-slate-900/60 border border-slate-150 dark:border-slate-800/80 hover:border-slate-350 dark:hover:border-slate-700 rounded-xl transition-all flex items-center justify-between gap-2 text-left bg-white dark:bg-slate-950/10"
                         >
-                          <div className="p-1 rounded bg-slate-50 border border-slate-200 text-slate-500 mt-0.5 shrink-0">
-                            <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="text-[11px] font-bold text-slate-700 truncate">{r.Title}</h4>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[9px] font-medium text-slate-400 font-mono">{r.Id}</span>
-                              <span className="text-slate-300 text-[8px]">•</span>
-                              <span className={`text-[8px] font-extrabold px-1 rounded-sm ${severityBgs[r.Severity] || 'bg-slate-50'}`}>
-                                {r.Severity}
-                              </span>
-                              {r.ImageId && (
-                                <>
-                                  <span className="text-slate-300 text-[8px]">•</span>
-                                  <ImageIcon className="w-2.5 h-2.5 text-indigo-550" title="Has attached image evidence" />
-                                </>
-                              )}
+                          <div 
+                            onClick={() => {
+                              setSelectedReport(r);
+                              setMapCenter({ lat: parseFloat(r.Latitude), lng: parseFloat(r.Longitude) });
+                              setMapZoom(14);
+                            }}
+                            className="flex-1 min-w-0 cursor-pointer flex items-start gap-2"
+                          >
+                            <div className="p-1 rounded bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-850 text-slate-500 mt-0.5 shrink-0">
+                              <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                             </div>
+                            <div className="min-w-0 flex-1">
+                              <h4 className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate">{r.Title}</h4>
+                              <div className="flex items-center gap-1.5 mt-0.5">
+                                <span className="text-[9px] font-medium text-slate-400 dark:text-slate-500 font-mono">{r.Id}</span>
+                                <span className="text-slate-300 dark:text-slate-800 text-[8px]">•</span>
+                                <span className={`text-[8px] font-extrabold px-1 rounded-sm ${severityBgs[r.Severity] || 'bg-slate-50'}`}>
+                                  {r.Severity}
+                                </span>
+                                {r.ImageId && (
+                                  <>
+                                    <span className="text-slate-300 dark:text-slate-850 text-[8px]">•</span>
+                                    <ImageIcon className="w-2.5 h-2.5 text-indigo-500 dark:text-indigo-400" title="Has attached image evidence" />
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Quick Upvote Column */}
+                          <div className="flex flex-col items-center justify-center shrink-0 border-l border-slate-100 dark:border-slate-800/80 pl-2.5">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleVote(r.Id, true);
+                              }}
+                              className="p-1 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-950/40 text-slate-450 hover:text-emerald-600 dark:text-slate-550 dark:hover:text-emerald-400 transition-colors cursor-pointer"
+                              title="Verify/Upvote report"
+                            >
+                              <ThumbsUp className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="text-[9px] font-extrabold text-slate-600 dark:text-slate-400 font-mono mt-0.5">
+                              {Number(r.Upvotes || 0)}
+                            </span>
                           </div>
                         </div>
                       ))}
-                      {filteredReports.length > 5 && (
-                        <p className="text-[9px] text-slate-400 text-center font-semibold pt-1">
-                          + {filteredReports.length - 5} other logged issues on map
-                        </p>
-                      )}
                       {filteredReports.length === 0 && (
-                        <div className="text-center py-6 text-slate-400 text-[10px] font-medium">
+                        <div className="text-center py-6 text-slate-400 dark:text-slate-600 text-[10px] font-medium">
                           No matching records found.
                         </div>
                       )}
@@ -1244,7 +1260,7 @@ export default function PotholeMap({
                   </div>
 
                   {/* Helper CTA */}
-                  <div className="mt-auto pt-3 border-t border-slate-100 text-[9px] text-slate-400 font-medium flex items-start gap-1.5 leading-normal">
+                  <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-800/60 text-[9px] text-slate-450 dark:text-slate-500 font-medium flex items-start gap-1.5 leading-normal">
                     <PlusCircle className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
                     <span>Tip: Tap anywhere on the map inside India limits to record a hazard at that precise location.</span>
                   </div>

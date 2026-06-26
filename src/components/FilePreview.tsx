@@ -277,7 +277,7 @@ export default function FilePreview({
           {isJSON && fileContent && (
             <div className="flex-1 flex flex-col overflow-hidden">
               {activeTab === 'preview' ? (
-                <JsonDashboardView rawText={fileContent} />
+                <JsonDashboardView rawText={fileContent} darkMode={darkMode} />
               ) : (
                 <pre className="flex-1 bg-slate-900 text-slate-100 p-4 rounded-lg font-mono text-xs overflow-auto border border-slate-800">
                   <code>{fileContent}</code>
@@ -737,7 +737,7 @@ function CsvDashboardView({
 /**
  * Custom Visual Bento-Grid Dashboard for Demographics & City Metrics JSON
  */
-function JsonDashboardView({ rawText }: { rawText: string }) {
+function JsonDashboardView({ rawText, darkMode = false }: { rawText: string, darkMode?: boolean }) {
   let parsed: any = null;
   try {
     parsed = JSON.parse(rawText);
@@ -767,31 +767,31 @@ function JsonDashboardView({ rawText }: { rawText: string }) {
       <div className="flex-1 overflow-y-auto pr-1 select-none space-y-5">
         {/* Bento Grid Header */}
         <div className="grid grid-cols-3 gap-4">
-          <div className="p-4 bg-indigo-50/20 border border-indigo-100/70 rounded-xl flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-100 text-indigo-600 rounded-lg">
+          <div className="p-4 bg-indigo-50/20 dark:bg-indigo-950/20 border border-indigo-100/70 dark:border-indigo-900/40 rounded-xl flex items-center gap-3">
+            <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 rounded-lg">
               <Users className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Total Commuters</p>
-              <p className="text-lg font-bold text-slate-800 mt-0.5">{vitals.totalPopulation?.toLocaleString() || 'N/A'}</p>
+              <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Total Commuters</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-white mt-0.5">{vitals.totalPopulation?.toLocaleString() || 'N/A'}</p>
             </div>
           </div>
-          <div className="p-4 bg-emerald-50/20 border border-emerald-100/70 rounded-xl flex items-center gap-3">
-            <div className="p-2.5 bg-emerald-100 text-emerald-600 rounded-lg">
+          <div className="p-4 bg-emerald-50/20 dark:bg-emerald-950/20 border border-emerald-100/70 dark:border-emerald-900/40 rounded-xl flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 rounded-lg">
               <TrendingUp className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Annual Growth</p>
-              <p className="text-lg font-bold text-slate-800 mt-0.5">{vitals.growthRate || 'N/A'}</p>
+              <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Annual Growth</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-white mt-0.5">{vitals.growthRate || 'N/A'}</p>
             </div>
           </div>
-          <div className="p-4 bg-cyan-50/20 border border-cyan-100/70 rounded-xl flex items-center gap-3">
-            <div className="p-2.5 bg-cyan-100 text-cyan-600 rounded-lg">
+          <div className="p-4 bg-cyan-50/20 dark:bg-cyan-950/20 border border-cyan-100/70 dark:border-cyan-900/40 rounded-xl flex items-center gap-3">
+            <div className="p-2.5 bg-cyan-100 dark:bg-cyan-900/60 text-cyan-600 dark:text-cyan-400 rounded-lg">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Sustainability Index</p>
-              <p className="text-lg font-bold text-slate-800 mt-0.5">{vitals.averageSustainabilityScore || '78'}/100</p>
+              <p className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Sustainability Index</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-white mt-0.5">{vitals.averageSustainabilityScore || '78'}/100</p>
             </div>
           </div>
         </div>
@@ -799,8 +799,8 @@ function JsonDashboardView({ rawText }: { rawText: string }) {
         {/* Charts block */}
         <div className="grid grid-cols-2 gap-4">
           {/* Modal Share Pie Chart */}
-          <div className="border border-slate-100 p-4 rounded-xl flex flex-col h-64">
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="border border-slate-100 dark:border-slate-800/80 p-4 rounded-xl flex flex-col h-64 bg-white dark:bg-slate-950/20">
+            <h4 className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Compass className="w-3.5 h-3.5 text-indigo-500" /> Commuter Modality Share (%)
             </h4>
             <div className="flex-1 flex items-center justify-between min-h-0">
@@ -824,14 +824,14 @@ function JsonDashboardView({ rawText }: { rawText: string }) {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="w-1/2 space-y-1.5 text-[11px] font-medium text-slate-600 pl-4">
+              <div className="w-1/2 space-y-1.5 text-[11px] font-medium text-slate-600 dark:text-slate-400 pl-4">
                 {modalData.map((entry, index) => (
                   <div key={entry.name} className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 truncate">
                       <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[index % COLORS.length] }}></span>
                       {entry.name}
                     </span>
-                    <span className="font-semibold text-slate-800">{entry.value}%</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{entry.value}%</span>
                   </div>
                 ))}
               </div>
@@ -839,16 +839,16 @@ function JsonDashboardView({ rawText }: { rawText: string }) {
           </div>
 
           {/* District Density Bar Chart */}
-          <div className="border border-slate-100 p-4 rounded-xl flex flex-col h-64">
-            <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <div className="border border-slate-100 dark:border-slate-800/80 p-4 rounded-xl flex flex-col h-64 bg-white dark:bg-slate-950/20">
+            <h4 className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <Building2 className="w-3.5 h-3.5 text-indigo-500" /> Population Density (residents/km²)
             </h4>
             <div className="flex-1 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={stats}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                  <XAxis dataKey="district" stroke="#94a3b8" fontSize={9} />
-                  <YAxis stroke="#94a3b8" fontSize={9} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={darkMode ? "#334155" : "#f1f5f9"} />
+                  <XAxis dataKey="district" stroke={darkMode ? "#64748b" : "#94a3b8"} fontSize={9} />
+                  <YAxis stroke={darkMode ? "#64748b" : "#94a3b8"} fontSize={9} />
                   <Tooltip wrapperStyle={{ fontSize: 10 }} />
                   <Bar dataKey="populationDensity" name="Density" fill="#6366f1" radius={[4, 4, 0, 0]} />
                 </BarChart>
@@ -858,22 +858,22 @@ function JsonDashboardView({ rawText }: { rawText: string }) {
         </div>
 
         {/* Detailed District Metrics */}
-        <div className="border border-slate-100 p-4 rounded-xl">
-          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-3">District Environmental Footprint Indicators</h4>
+        <div className="border border-slate-100 dark:border-slate-800/80 p-4 rounded-xl bg-white dark:bg-slate-950/20">
+          <h4 className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-3">District Environmental Footprint Indicators</h4>
           <div className="space-y-3">
             {stats.map((dist: any) => (
-              <div key={dist.district} className="flex items-center justify-between p-2.5 bg-slate-50/50 hover:bg-slate-50 rounded-lg transition-colors border border-slate-100">
+              <div key={dist.district} className="flex items-center justify-between p-2.5 bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-50 dark:hover:bg-slate-900/60 rounded-lg transition-colors border border-slate-100 dark:border-slate-800/60">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-800">{dist.district}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">Primary Commute Mode: <span className="font-semibold text-slate-600">{dist.primaryMobility}</span></p>
+                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">{dist.district}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Primary Commute Mode: <span className="font-semibold text-slate-650 dark:text-slate-400">{dist.primaryMobility}</span></p>
                 </div>
                 <div className="flex items-center gap-6 shrink-0">
                   <div className="text-right">
-                    <span className="text-[9px] text-slate-400 block uppercase tracking-wider">Commuters Flow</span>
-                    <span className="text-xs font-bold text-slate-700">+{dist.commuterInflow?.toLocaleString()} /day</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase tracking-wider">Commuters Flow</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">+{dist.commuterInflow?.toLocaleString()} /day</span>
                   </div>
                   <div className="text-right w-16">
-                    <span className="text-[9px] text-slate-400 block uppercase tracking-wider">Green Index</span>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500 block uppercase tracking-wider">Green Index</span>
                     <span className={`text-xs font-bold ${
                       dist.greenIndexPct > 40 ? 'text-emerald-600' : dist.greenIndexPct > 20 ? 'text-amber-500' : 'text-rose-500'
                     }`}>{dist.greenIndexPct}%</span>
