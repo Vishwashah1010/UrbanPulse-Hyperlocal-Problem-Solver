@@ -224,23 +224,7 @@ export default function Sidebar({
           </div>
         </div>
 
-        {/* Search Input */}
-        <div className="relative mt-2">
-          <Search className={`absolute left-2.5 top-2.5 w-4 h-4 transition-colors ${darkMode ? 'text-slate-600' : 'text-slate-400'}`} />
-          <input
-            type="text"
-            placeholder="Search project files..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            disabled={!folder || files.length === 0}
-            className={`w-full pl-9 pr-4 py-2 text-xs rounded-lg focus:outline-none transition-all ${
-              darkMode 
-                ? 'bg-slate-900/60 border border-slate-800 text-slate-200 placeholder-slate-600 focus:bg-slate-900 focus:border-slate-700' 
-                : 'bg-slate-50 border border-transparent text-slate-850 placeholder-slate-450 focus:bg-white focus:border-slate-200'
-            }`}
-            id="search-files-input"
-          />
-        </div>
+
       </div>
 
       {/* Navigation Tabs */}
@@ -516,22 +500,7 @@ export default function Sidebar({
           ? 'border-slate-900 bg-slate-950/40' 
           : 'border-slate-100 bg-slate-50/50'
       } space-y-3`}>
-        {folder && files.length > 0 && (
-          <button
-            onClick={onCreateSamples}
-            disabled={isCreatingSamples}
-            className={`w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium rounded-lg shadow-xs transition-colors disabled:opacity-50 cursor-pointer ${
-              darkMode
-                ? 'text-slate-300 hover:text-white bg-slate-900 border border-slate-800 hover:border-slate-700'
-                : 'text-slate-700 hover:text-slate-900 bg-white border border-slate-200 hover:border-slate-300'
-            }`}
-            title="Will recreate project telemetry, reports and structured demographics stats"
-            id="sidebar-recreate-samples-btn"
-          >
-            <PlusCircle className="w-3.5 h-3.5 text-indigo-500" />
-            {isCreatingSamples ? 'Resetting Workspace...' : 'Reset Sample Files'}
-          </button>
-        )}
+
 
         {user && (
           <div className={`flex items-center justify-between pt-2 border-t transition-colors ${

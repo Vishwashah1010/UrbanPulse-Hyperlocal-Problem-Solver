@@ -6,3 +6,8 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Large model assets & temp files
+pothole_Main.zip
+model/
+scratch/

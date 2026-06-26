@@ -289,7 +289,7 @@ export default function FilePreview({
           {isImage && imageUrl && (
             <div className="flex-1 flex flex-col items-center justify-center relative bg-slate-50/50 rounded-lg border border-dashed border-slate-200 overflow-hidden">
               {/* Image Controls */}
-              <div className="absolute top-3 right-3 bg-white border border-slate-150 px-2.5 py-1.5 rounded-lg shadow-xs flex items-center gap-2.5 z-10 select-none text-[11px] font-semibold text-slate-600">
+              <div className="absolute top-3 right-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-2.5 py-1.5 rounded-lg shadow-xs flex items-center gap-2.5 z-10 select-none text-[11px] font-semibold text-slate-600 dark:text-slate-400">
                 <button 
                   onClick={() => setZoomLevel(Math.max(25, zoomLevel - 25))}
                   className="hover:text-slate-900 font-bold px-1"
@@ -428,7 +428,7 @@ function SpreadsheetView({ csvData }: { csvData: CsvParsedData }) {
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-900 text-slate-600 dark:text-slate-350 bg-white dark:bg-transparent">
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-800 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-900/10">
             {paginatedRows.map((row, rIdx) => (
               <tr key={rIdx} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/20 transition-colors font-mono text-[11px]">
                 {csvData.headers.map((header) => (
@@ -986,7 +986,7 @@ const MarkdownRenderer = ({ text }: { text: string }) => {
         listItems = [];
         inList = false;
       }
-      elements.push(<p key={`p-${i}`} className="text-xs text-slate-600 dark:text-slate-350 leading-relaxed mb-3">{parseInlineMarkdown(line)}</p>);
+      elements.push(<p key={`p-${i}`} className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">{parseInlineMarkdown(line)}</p>);
     }
   }
 

@@ -221,6 +221,72 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
   const [urgencyLevel, setUrgencyLevel] = useState('');
   const [trafficImpact, setTrafficImpact] = useState('');
 
+  const [isDetecting, setIsDetecting] = useState(false);
+  const [detectionResult, setDetectionResult] = useState<any>(null);
+
+  const runPotholeDetection = async (fileToDetect: File) => {
+    setIsDetecting(true);
+    setStatusMessage(null);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(fileToDetect);
+      reader.onload = async () => {
+        const base64Image = reader.result as string;
+        try {
+          const response = await fetch('/api/detect-pothole', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: base64Image, filename: fileToDetect.name })
+          });
+
+          if (!response.ok) {
+            const errData = await response.json();
+            throw new Error(errData.error || 'Failed to detect potholes.');
+          }
+
+          const data = await response.json();
+          setDetectionResult(data);
+
+          // Update local preview to show the annotated image!
+          setLocalFilePreview(data.annotatedImage);
+          
+          // Auto-fill form fields
+          setFormTitle(data.title || '');
+          setFormDescription(data.description || '');
+          if (data.severity) {
+            const sev = data.severity.charAt(0).toUpperCase() + data.severity.slice(1).toLowerCase();
+            if (['Critical', 'High', 'Moderate', 'Low'].includes(sev)) {
+              setFormSeverity(sev);
+            }
+          }
+          if (data.predictedSLA) {
+            setPredictedSLA(data.predictedSLA);
+          }
+          if (data.urgencyLevel) {
+            setUrgencyLevel(data.urgencyLevel);
+          }
+          if (data.trafficImpact) {
+            setTrafficImpact(data.trafficImpact);
+          }
+
+          setStatusMessage({
+            type: 'success',
+            text: `AI Surface Scan complete (${data.provider}). Found ${data.pothole_count} pothole(s) covering ${data.damage_percentage}% of road segment.`
+          });
+        } catch (err: any) {
+          console.error(err);
+          setStatusMessage({ type: 'error', text: err.message || 'Image detection failed.' });
+        } finally {
+          setIsDetecting(false);
+        }
+      };
+    } catch (err: any) {
+      console.error(err);
+      setStatusMessage({ type: 'error', text: 'Failed to read image file.' });
+      setIsDetecting(false);
+    }
+  };
+
   const handleAICategorize = async () => {
     if (!formDescription.trim()) {
       setStatusMessage({ type: 'error', text: 'Please enter a description first so the AI can analyze it.' });
@@ -435,6 +501,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
       setLocalFile(file);
       const url = URL.createObjectURL(file);
       setLocalFilePreview(url);
+      runPotholeDetection(file);
     }
   };
 
@@ -446,6 +513,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
       setLocalFilePreview(null);
     }
     setSelectedDriveImageId('');
+    setDetectionResult(null);
   };
 
   // Submit secure report
@@ -476,12 +544,27 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
       // Step 1: Handle image upload if user uploaded via device Camera or local files
       if ((imageSource === 'camera' || imageSource === 'local') && localFile) {
         try {
+          let fileToUpload: Blob | File = localFile;
+          
+          if (detectionResult?.annotatedImage) {
+            const matches = detectionResult.annotatedImage.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+            if (matches && matches.length === 3) {
+              const byteCharacters = atob(matches[2]);
+              const byteNumbers = new Array(byteCharacters.length);
+              for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+              }
+              const byteArray = new Uint8Array(byteNumbers);
+              fileToUpload = new Blob([byteArray], { type: matches[1] || 'image/jpeg' });
+            }
+          }
+
           finalImageId = await uploadBinaryFile(
             token,
             `${reportId}_hazard_photo.jpg`,
             folderId,
             localFile.type || 'image/jpeg',
-            localFile
+            fileToUpload
           );
         } catch (uploadErr: any) {
           console.error('Image upload failed:', uploadErr);
@@ -972,15 +1055,31 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
 
               {/* Show preview if file selected */}
               {localFilePreview && (imageSource === 'camera' || imageSource === 'local') && (
-                <div className="relative w-full h-32 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-inner">
-                  <img src={localFilePreview} alt="Local Capture Preview" className="h-full object-contain" />
-                  <button
-                    type="button"
-                    onClick={handleClearImage}
-                    className="absolute top-2 right-2 p-1 bg-slate-900/80 text-white rounded-full hover:bg-slate-950 transition-colors cursor-pointer"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
+                <div className="relative w-full h-40 bg-slate-900 rounded-xl overflow-hidden flex items-center justify-center border border-slate-200 dark:border-slate-800 shadow-inner">
+                  {isDetecting ? (
+                    <div className="flex flex-col items-center gap-2 text-white text-center">
+                      <Loader className="w-5 h-5 animate-spin text-indigo-500" />
+                      <span className="text-[10px] font-bold text-slate-350">Scanning Road surface (YOLO/Gemini)...</span>
+                    </div>
+                  ) : (
+                    <>
+                      <img src={localFilePreview} alt="Local Capture Preview" className="h-full object-contain" />
+                      <button
+                        type="button"
+                        onClick={handleClearImage}
+                        className="absolute top-2 right-2 p-1 bg-slate-900/80 text-white rounded-full hover:bg-slate-950 transition-colors cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      
+                      {detectionResult && (
+                        <div className="absolute bottom-2 left-2 bg-indigo-600/90 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow flex items-center gap-1">
+                          <Sparkles className="w-2.5 h-2.5 text-indigo-200 animate-pulse" />
+                          <span>Detected: {detectionResult.pothole_count} Pothole(s) ({detectionResult.damage_percentage}% Damage Area)</span>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               )}
 

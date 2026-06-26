@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
@@ -10,7 +11,8 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
   // Initialize GoogleGenAI client (safe check if key exists)
   const apiKey = process.env.GEMINI_API_KEY;
@@ -176,6 +178,147 @@ Please draft a professional 3-sentence summary highlighting:
     } catch (error: any) {
       console.error("Gemini executive summary failed:", error);
       res.status(500).json({ error: error.message || "Failed to generate executive summary." });
+    }
+  });
+
+  app.post("/api/detect-pothole", async (req, res) => {
+    try {
+      const { image, filename } = req.body;
+      if (!image) {
+        return res.status(400).json({ error: "Image data is required (base64)." });
+      }
+
+      // Parse base64
+      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      if (!matches || matches.length !== 3) {
+        return res.status(400).json({ error: "Invalid base64 image format." });
+      }
+
+      const mimeType = matches[1];
+      const base64Data = matches[2];
+      const buffer = Buffer.from(base64Data, "base64");
+
+      const tempDir = path.join(process.cwd(), "scratch", "temp");
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
+      }
+
+      const tempInputPath = path.join(tempDir, `input_${Date.now()}_${filename || "image.jpg"}`);
+      const tempOutputPath = path.join(tempDir, `output_${Date.now()}_${filename || "image.jpg"}`);
+
+      fs.writeFileSync(tempInputPath, buffer);
+
+      const { exec } = await import("child_process");
+      const executeYOLO = () => {
+        return new Promise<any>((resolve, reject) => {
+          exec(`python detect.py "${tempInputPath}" "${tempOutputPath}"`, (err, stdout, stderr) => {
+            if (err) {
+              return reject(err);
+            }
+            try {
+              const stdoutStr = stdout.trim();
+              const jsonStartIndex = stdoutStr.indexOf("{");
+              const jsonEndIndex = stdoutStr.lastIndexOf("}");
+              if (jsonStartIndex !== -1 && jsonEndIndex !== -1 && jsonEndIndex > jsonStartIndex) {
+                const jsonStr = stdoutStr.slice(jsonStartIndex, jsonEndIndex + 1);
+                const result = JSON.parse(jsonStr);
+                resolve(result);
+              } else {
+                reject(new Error(`No JSON output found in stdout: ${stdout}`));
+              }
+            } catch (e) {
+              reject(new Error(`Failed to parse Python output: ${stdout}`));
+            }
+          });
+        });
+      };
+
+      let yoloResult: any = null;
+      let missingDependencies = false;
+
+      try {
+        yoloResult = await executeYOLO();
+        if (!yoloResult.success && yoloResult.error === "MissingDependencies") {
+          missingDependencies = true;
+        }
+      } catch (yoloErr) {
+        console.warn("YOLO execution failed, falling back to Gemini:", yoloErr);
+        missingDependencies = true;
+      }
+
+      // Clean up inputs if YOLO worked
+      if (yoloResult && yoloResult.success) {
+        const outputBuffer = fs.readFileSync(tempOutputPath);
+        const outputBase64 = `data:${mimeType};base64,${outputBuffer.toString("base64")}`;
+
+        try {
+          fs.unlinkSync(tempInputPath);
+          fs.unlinkSync(tempOutputPath);
+        } catch (cleanErr) {}
+
+        return res.json({
+          provider: "YOLOv8 Local Model",
+          pothole_count: yoloResult.pothole_count,
+          damage_percentage: yoloResult.damage_percentage,
+          severity: yoloResult.severity,
+          description: yoloResult.description,
+          title: `${yoloResult.severity} Severity Road Hazard`,
+          annotatedImage: outputBase64
+        });
+      }
+
+      // Fallback to Gemini Vision API if YOLO dependencies are missing
+      if (missingDependencies) {
+        if (!ai) {
+          return res.status(500).json({ error: "Gemini API Key is not configured on the server." });
+        }
+
+        console.log("Using Gemini Vision for pothole detection (YOLO dependencies missing)...");
+        const response = await ai.models.generateContent({
+          model: "gemini-3.5-flash",
+          contents: [
+            {
+              inlineData: {
+                data: base64Data,
+                mimeType: mimeType
+              }
+            },
+            "Analyze this road segment photo. Detect if there are potholes or road damage hazards. Return a JSON object with: 1. pothole_count (integer), 2. damage_percentage (float, estimated area percentage of the road surface that is damaged, e.g., 5.4), 3. severity ('Low', 'Moderate', 'High', 'Critical'), 4. description (a brief professional dispatch description under 120 characters), 5. title (a suggested professional title, e.g., 'Large Crater near Bellandur'). Return ONLY raw JSON, do not wrap in markdown ```json."
+          ]
+        });
+
+        const responseText = response.text;
+        if (!responseText) {
+          throw new Error("Empty response from Gemini Vision API.");
+        }
+
+        let cleanJsonText = responseText.trim();
+        if (cleanJsonText.startsWith("```")) {
+          cleanJsonText = cleanJsonText.replace(/^```json\s*|```$/g, "");
+        }
+
+        const geminiResult = JSON.parse(cleanJsonText);
+
+        try {
+          fs.unlinkSync(tempInputPath);
+        } catch (cleanErr) {}
+
+        return res.json({
+          provider: "Gemini Vision AI (Fallback)",
+          pothole_count: Number(geminiResult.pothole_count || 0),
+          damage_percentage: Number(geminiResult.damage_percentage || 0.0),
+          severity: geminiResult.severity || "Moderate",
+          description: geminiResult.description || "Road damage detected.",
+          title: geminiResult.title || "Road Surface Hazard",
+          annotatedImage: image
+        });
+      }
+
+      res.status(500).json({ error: yoloResult?.error || "Detection failed." });
+
+    } catch (error: any) {
+      console.error("Pothole detection failed:", error);
+      res.status(500).json({ error: error.message || "Failed to process image detection." });
     }
   });
 

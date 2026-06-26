@@ -1,5 +1,14 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, User } from 'firebase/auth';
+import { 
+  getAuth, 
+  signInWithPopup, 
+  GoogleAuthProvider, 
+  onAuthStateChanged, 
+  User,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  updateProfile
+} from 'firebase/auth';
 import firebaseConfig from '../../firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
@@ -21,13 +30,19 @@ export const initAuth = (
 ) => {
   return onAuthStateChanged(auth, async (user: User | null) => {
     if (user) {
-      if (cachedAccessToken) {
-        if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-      } else if (!isSigningIn) {
-        // If logged in but no cached token (e.g., page refresh),
-        // we will need the user to re-authenticate to get a fresh token.
-        cachedAccessToken = null;
-        if (onAuthFailure) onAuthFailure();
+      const isGoogleUser = user.providerData.some(p => p.providerId === 'google.com');
+      if (isGoogleUser) {
+        if (cachedAccessToken) {
+          if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
+        } else if (!isSigningIn) {
+          // If logged in but no cached token (e.g., page refresh),
+          // we will need the user to re-authenticate to get a fresh token.
+          cachedAccessToken = null;
+          if (onAuthFailure) onAuthFailure();
+        }
+      } else {
+        // Email/Password user -> runs in local sandbox mode
+        if (onAuthSuccess) onAuthSuccess(user, 'sandbox-token');
       }
     } else {
       cachedAccessToken = null;
@@ -56,6 +71,18 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
   }
 };
 
+// Email/Password Authentication Helpers
+export const emailSignIn = async (email: string, pass: string): Promise<User> => {
+  const result = await signInWithEmailAndPassword(auth, email, pass);
+  return result.user;
+};
+
+export const emailSignUp = async (email: string, pass: string, name: string): Promise<User> => {
+  const result = await createUserWithEmailAndPassword(auth, email, pass);
+  await updateProfile(result.user, { displayName: name });
+  return result.user;
+};
+
 export const getAccessToken = async (): Promise<string | null> => {
   return cachedAccessToken;
 };
@@ -63,4 +90,6 @@ export const getAccessToken = async (): Promise<string | null> => {
 export const logout = async () => {
   await auth.signOut();
   cachedAccessToken = null;
+  localStorage.removeItem('urbanpulse-sandbox-active');
 };
+

@@ -12,7 +12,7 @@ import {
   Sun,
   Moon
 } from 'lucide-react';
-import { initAuth, googleSignIn, logout } from './lib/firebase';
+import { initAuth, googleSignIn, logout, emailSignIn, emailSignUp } from './lib/firebase';
 import { 
   findUrbanPulseFolder, 
   listFolderFiles, 
@@ -59,6 +59,10 @@ export default function App() {
   const [token, setToken] = useState<string | null>(null);
   const [needsAuth, setNeedsAuth] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailName, setEmailName] = useState('');
 
   // Folder/Workspace state
   const [isLoadingFolder, setIsLoadingFolder] = useState(false);
@@ -187,6 +191,58 @@ export default function App() {
     }
   };
 
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) {
+      setSampleError('Please enter both email and password.');
+      return;
+    }
+    if (authMode === 'signup' && !emailName.trim()) {
+      setSampleError('Please enter your name.');
+      return;
+    }
+
+    setIsLoggingIn(true);
+    setSampleError(null);
+    try {
+      let firebaseUser;
+      if (authMode === 'signin') {
+        firebaseUser = await emailSignIn(email, password);
+      } else {
+        firebaseUser = await emailSignUp(email, password, emailName);
+      }
+
+      if (firebaseUser) {
+        const authUser: AuthUser = {
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          displayName: firebaseUser.displayName,
+          photoURL: firebaseUser.photoURL,
+        };
+        setUser(authUser);
+        setToken('sandbox-token');
+        setNeedsAuth(false);
+        activateSandbox(); // Turn on sandbox mode since we don't have Google OAuth token
+        loadWorkspace('sandbox-token');
+      }
+    } catch (err: any) {
+      console.error('Email authentication failed:', err);
+      let cleanMsg = err.message || 'Authentication failed.';
+      if (cleanMsg.includes('auth/invalid-credential')) {
+        cleanMsg = 'Invalid email or password.';
+      } else if (cleanMsg.includes('auth/email-already-in-use')) {
+        cleanMsg = 'This email address is already in use.';
+      } else if (cleanMsg.includes('auth/weak-password')) {
+        cleanMsg = 'Password should be at least 6 characters.';
+      } else if (cleanMsg.includes('auth/invalid-email')) {
+        cleanMsg = 'Invalid email format.';
+      }
+      setSampleError(cleanMsg);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
   // Manual Trigger to sign in
   const handleLogin = async () => {
     setIsLoggingIn(true);
@@ -289,11 +345,7 @@ export default function App() {
           <div className={`py-8 px-4 border rounded-2xl shadow-sm sm:px-10 flex flex-col items-center transition-colors duration-300 ${
             darkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-150'
           }`}>
-            <p className={`text-center text-xs leading-relaxed mb-6 font-medium transition-colors ${
-              darkMode ? 'text-slate-300' : 'text-slate-600'
-            }`}>
-              We need permission to see your Google Drive to load and preview the files inside your <strong>UrbanPulse</strong> project folder.
-            </p>
+
 
             {sampleError && (
               <div className="mb-5 w-full p-3.5 bg-rose-50 border border-rose-100 rounded-xl text-[11px] font-medium text-rose-700 flex items-start gap-2.5 leading-relaxed">
@@ -301,6 +353,94 @@ export default function App() {
                 <span>{sampleError}</span>
               </div>
             )}
+
+            {/* Tab selection */}
+            <div className="flex border-b border-slate-150 dark:border-slate-800 w-full mb-5 text-xs font-bold transition-colors">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('signin');
+                  setSampleError(null);
+                }}
+                className={`flex-1 pb-3 text-center transition-colors cursor-pointer border-b-2 ${
+                  authMode === 'signin'
+                    ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500'
+                    : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-350'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('signup');
+                  setSampleError(null);
+                }}
+                className={`flex-1 pb-3 text-center transition-colors cursor-pointer border-b-2 ${
+                  authMode === 'signup'
+                    ? 'border-indigo-600 text-indigo-600 dark:text-indigo-400 dark:border-indigo-500'
+                    : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-350'
+                }`}
+              >
+                Sign Up
+              </button>
+            </div>
+
+            {/* Email/Password Form */}
+            <form onSubmit={handleEmailAuth} className="w-full space-y-4 mb-5">
+              {authMode === 'signup' && (
+                <div>
+                  <label className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase block mb-1">Your Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="John Doe"
+                    value={emailName}
+                    onChange={(e) => setEmailName(e.target.value)}
+                    className="w-full text-xs bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 focus:bg-white focus:dark:bg-slate-950 focus:border-indigo-500 focus:outline-none px-3 py-2 rounded-xl text-slate-750 dark:text-slate-305 font-semibold transition-colors"
+                  />
+                </div>
+              )}
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase block mb-1">Email Address</label>
+                <input
+                  type="email"
+                  required
+                  placeholder="name@example.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 focus:bg-white focus:dark:bg-slate-950 focus:border-indigo-500 focus:outline-none px-3 py-2 rounded-xl text-slate-755 dark:text-slate-300 font-semibold transition-colors"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-450 dark:text-slate-500 uppercase block mb-1">Password</label>
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full text-xs bg-slate-50 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 hover:border-slate-350 dark:hover:border-slate-700 focus:bg-white focus:dark:bg-slate-950 focus:border-indigo-500 focus:outline-none px-3 py-2 rounded-xl text-slate-755 dark:text-slate-300 font-semibold transition-colors"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoggingIn}
+                className="w-full py-2.5 bg-indigo-650 hover:bg-indigo-700 active:bg-indigo-800 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer shrink-0"
+              >
+                {isLoggingIn ? 'Processing...' : authMode === 'signin' ? 'Sign In' : 'Sign Up'}
+              </button>
+            </form>
+
+            {/* Divider */}
+            <div className="w-full flex items-center gap-3 mb-5 select-none">
+              <div className="flex-1 border-t border-slate-150 dark:border-slate-800/80"></div>
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-550 uppercase">or</span>
+              <div className="flex-1 border-t border-slate-150 dark:border-slate-800/80"></div>
+            </div>
 
             {/* Premium Custom "Sign in with Google" button */}
             <button
