@@ -30,6 +30,7 @@ import Sidebar from './components/Sidebar';
 import FilePreview from './components/FilePreview';
 import MetricsDashboard from './components/MetricsDashboard';
 import ReportIssue from './components/ReportIssue';
+import ImpactAnalytics from './components/ImpactAnalytics';
 
 
 
@@ -79,7 +80,7 @@ export default function App() {
   const [fileError, setFileError] = useState<string | null>(null);
 
   // Active navigation view state
-  const [activeView, setActiveView] = useState<'files' | 'metrics' | 'report'>('files');
+  const [activeView, setActiveView] = useState<'files' | 'metrics' | 'report' | 'impact'>('files');
 
   // Sample creation state
   const [isCreatingSamples, setIsCreatingSamples] = useState(false);
@@ -529,6 +530,13 @@ export default function App() {
         onToggleTheme={toggleDarkMode}
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
+        onUrgentAlert={() => {
+          setActiveView('files');
+          const potholesFile = files.find(f => f.id === 'potholes' || f.name.toLowerCase() === 'pothole_reports.csv');
+          if (potholesFile) {
+            handleSelectFile(potholesFile);
+          }
+        }}
       />
 
       {/* Main Panel Content Previewer */}
@@ -605,6 +613,15 @@ export default function App() {
               </div>
             </div>
           </div>
+        ) : activeView === 'impact' ? (
+          /* Render Civic Impact Analytics Dashboard */
+          <ImpactAnalytics
+            files={files}
+            token={token}
+            darkMode={darkMode}
+            onNavigateToReport={() => setActiveView('report')}
+            onNavigateToFiles={() => setActiveView('files')}
+          />
         ) : activeView === 'report' ? (
           /* Render Dedicated Interactive Hazard Reporter */
           <ReportIssue

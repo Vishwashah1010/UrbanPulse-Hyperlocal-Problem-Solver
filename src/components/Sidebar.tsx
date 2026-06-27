@@ -20,7 +20,9 @@ import {
   Award,
   ChevronDown,
   ChevronUp,
-  Star
+  Star,
+  TrendingUp,
+  AlertTriangle
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { GoogleDriveFile, ProjectFolder, AuthUser } from '../types';
@@ -37,10 +39,11 @@ interface SidebarProps {
   isLoading: boolean;
   user: AuthUser | null;
   onSignOut: () => void;
-  activeView: 'files' | 'metrics' | 'report';
-  onChangeView: (view: 'files' | 'metrics' | 'report') => void;
+  activeView: 'files' | 'metrics' | 'report' | 'impact';
+  onChangeView: (view: 'files' | 'metrics' | 'report' | 'impact') => void;
   darkMode: boolean;
   onToggleTheme: () => void;
+  onUrgentAlert?: () => void;
 }
 
 // Framer Motion staggered list variants
@@ -83,7 +86,8 @@ export default function Sidebar({
   activeView,
   onChangeView,
   darkMode,
-  onToggleTheme
+  onToggleTheme,
+  onUrgentAlert
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState<CivicProfile>(() => getUserCivicProfile());
@@ -264,6 +268,18 @@ export default function Sidebar({
             >
               <PlusCircle className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
               <span className="truncate">Reports</span>
+            </button>
+            <button
+              onClick={() => onChangeView('impact')}
+              className={`flex-1 py-1.5 rounded-md transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                activeView === 'impact' 
+                  ? (darkMode ? 'bg-slate-800 text-white shadow-sm font-extrabold' : 'bg-white text-slate-800 shadow-2xs font-extrabold')
+                  : (darkMode ? 'text-slate-400 hover:text-slate-200' : 'text-slate-500 hover:text-slate-800')
+              }`}
+              id="sidebar-view-impact-tab"
+            >
+              <TrendingUp className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+              <span className="truncate">Impact</span>
             </button>
           </div>
         </div>
@@ -496,6 +512,30 @@ export default function Sidebar({
           ? 'border-slate-900 bg-slate-950/40' 
           : 'border-slate-100 bg-slate-50/50'
       } space-y-3`}>
+        {folder && (
+          <div className={`p-3 rounded-xl border transition-all ${
+            darkMode 
+              ? 'bg-rose-950/20 border-rose-900/40' 
+              : 'bg-rose-50 border-rose-100'
+          } mb-1 flex flex-col gap-2`}>
+            <div className="flex items-center gap-1.5 text-rose-500 font-extrabold text-[10px] uppercase tracking-wider">
+              <AlertTriangle className="w-3.5 h-3.5 fill-rose-500/10 animate-bounce" />
+              Critical District Alert
+            </div>
+            <p className={`text-[10px] leading-relaxed font-semibold ${
+              darkMode ? 'text-slate-350' : 'text-slate-600'
+            }`}>
+              3 pending high-severity hazards in Sector-4.
+            </p>
+            <button
+              onClick={onUrgentAlert}
+              className="w-full py-1.5 text-center text-[10px] font-black text-rose-700 bg-rose-200 hover:bg-rose-300 dark:text-rose-100 dark:bg-rose-900/60 dark:hover:bg-rose-900/80 rounded-lg shadow-2xs hover:shadow-xs transition-all cursor-pointer uppercase tracking-wider"
+              id="sidebar-urgent-alert-btn"
+            >
+              Urgent Alert
+            </button>
+          </div>
+        )}
 
 
         {user && (
