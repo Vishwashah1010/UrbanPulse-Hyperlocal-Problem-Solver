@@ -559,9 +559,10 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
             }
           }
 
+          const userEmail = localStorage.getItem('urbanpulse_current_user_email') || 'resident';
           finalImageId = await uploadBinaryFile(
             token,
-            `${reportId}_hazard_photo.jpg`,
+            `${userEmail}_${reportId}_hazard_photo.jpg`,
             folderId,
             localFile.type || 'image/jpeg',
             fileToUpload
@@ -579,6 +580,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
       const cleanDesc = formDescription.replace(/,/g, ' ').replace(/\n/g, ' ').trim();
       const categoryInfo = inferCategory(cleanTitle, cleanDesc);
 
+      const userEmail = localStorage.getItem('urbanpulse_current_user_email') || 'resident';
       const newRecord = {
         Id: reportId,
         Title: cleanTitle,
@@ -591,7 +593,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
         ImageId: finalImageId,
         Upvotes: 0,
         Downvotes: 0,
-        ReporterId: token ? 'you' : 'resident',
+        ReporterId: userEmail,
         PredictedSLA: predictedSLA || 'Typically fixed within 48 hours',
         UrgencyLevel: urgencyLevel || formSeverity,
         TrafficImpact: trafficImpact || 'Minor',

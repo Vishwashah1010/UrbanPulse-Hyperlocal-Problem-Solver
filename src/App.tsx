@@ -99,6 +99,9 @@ export default function App() {
           displayName: firebaseUser.displayName,
           photoURL: firebaseUser.photoURL,
         };
+        localStorage.setItem('urbanpulse_current_user_email', authUser.email || '');
+        localStorage.setItem('urbanpulse_current_user_id', authUser.uid);
+        localStorage.setItem('urbanpulse_current_user_name', authUser.displayName || authUser.email || 'You');
         setUser(authUser);
         setToken(accessToken);
         setNeedsAuth(false);
@@ -106,6 +109,9 @@ export default function App() {
         loadWorkspace(accessToken);
       },
       () => {
+        localStorage.removeItem('urbanpulse_current_user_email');
+        localStorage.removeItem('urbanpulse_current_user_id');
+        localStorage.removeItem('urbanpulse_current_user_name');
         setNeedsAuth(true);
         setUser(null);
         setToken(null);
@@ -221,9 +227,12 @@ export default function App() {
         const authUser: AuthUser = {
           uid: firebaseUser.uid,
           email: firebaseUser.email,
-          displayName: firebaseUser.displayName,
+          displayName: firebaseUser.displayName || emailName,
           photoURL: firebaseUser.photoURL,
         };
+        localStorage.setItem('urbanpulse_current_user_email', authUser.email || '');
+        localStorage.setItem('urbanpulse_current_user_id', authUser.uid);
+        localStorage.setItem('urbanpulse_current_user_name', authUser.displayName || authUser.email || 'You');
         setUser(authUser);
         setToken('sandbox-token');
         setNeedsAuth(false);
@@ -261,6 +270,9 @@ export default function App() {
           displayName: result.user.displayName,
           photoURL: result.user.photoURL,
         };
+        localStorage.setItem('urbanpulse_current_user_email', authUser.email || '');
+        localStorage.setItem('urbanpulse_current_user_id', authUser.uid);
+        localStorage.setItem('urbanpulse_current_user_name', authUser.displayName || authUser.email || 'You');
         setUser(authUser);
         setToken(result.accessToken);
         setNeedsAuth(false);
@@ -279,6 +291,9 @@ export default function App() {
     try {
       await logout();
       localStorage.removeItem('urbanpulse-sandbox-active');
+      localStorage.removeItem('urbanpulse_current_user_email');
+      localStorage.removeItem('urbanpulse_current_user_id');
+      localStorage.removeItem('urbanpulse_current_user_name');
     } catch (err) {
       console.error('Logout error:', err);
     }

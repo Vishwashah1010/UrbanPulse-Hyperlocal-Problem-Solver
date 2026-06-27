@@ -95,6 +95,11 @@ export default function Sidebar({
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
+    setProfile(getUserCivicProfile());
+    setLeaderboard(getLeaderboard());
+  }, [user]);
+
+  useEffect(() => {
     const handleProfileUpdate = () => {
       setProfile(getUserCivicProfile());
       setLeaderboard(getLeaderboard());
@@ -102,7 +107,7 @@ export default function Sidebar({
     window.addEventListener('profile-updated', handleProfileUpdate);
     // Listen for storage changes as well
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'urbanpulse_civic_profile') {
+      if (e.key.startsWith('urbanpulse_civic_profile_')) {
         handleProfileUpdate();
       }
     };
@@ -139,15 +144,13 @@ export default function Sidebar({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
-  const getFileDisplayName = (name: string): string => {
-    const lowercase = name.toLowerCase();
-    if (lowercase === 'readme.md') return 'Project Overview';
-    if (lowercase === 'environmental_sensors.csv') return 'Environmental Sensors Report';
-    if (lowercase === 'transit_ridership.csv') return 'Transit Ridership Report';
-    if (lowercase === 'demographics_distribution.json') return 'Demographics Distribution';
-    if (lowercase === 'pothole_reports.csv') return 'Pothole Reports Register';
-    
-    let cleanName = name.replace(/\.[a-zA-Z0-9]+$/, '');
+  const getFileDisplayName = (name: string) => {
+    let cleanName = name;
+    const underscoreIdx = cleanName.indexOf('_');
+    if (underscoreIdx !== -1 && cleanName.slice(0, underscoreIdx).includes('@')) {
+      cleanName = cleanName.slice(underscoreIdx + 1);
+    }
+    cleanName = cleanName.replace(/\.[a-zA-Z0-9]+$/, '');
     if (name.toLowerCase().endsWith('.csv')) {
       cleanName += ' Report';
     } else if (name.toLowerCase().endsWith('.json')) {
@@ -158,10 +161,25 @@ export default function Sidebar({
       .replace(/\b\w/g, c => c.toUpperCase());
   };
 
-  const filteredFiles = files.filter(f => 
-    f.name.toLowerCase() !== 'readme.md' &&
-    f.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const currentUserEmail = localStorage.getItem('urbanpulse_current_user_email') || '';
+  const filteredFiles = files.filter(f => {
+    const nameLower = f.name.toLowerCase();
+    if (nameLower === 'readme.md') return false;
+    
+    const isImage = nameLower.endsWith('.jpg') || nameLower.endsWith('.jpeg') || nameLower.endsWith('.png');
+    if (isImage) {
+      const underscoreIdx = f.name.indexOf('_');
+      if (underscoreIdx !== -1) {
+        const prefix = f.name.slice(0, underscoreIdx);
+        if (prefix.includes('@')) {
+          return prefix.toLowerCase() === currentUserEmail.toLowerCase();
+        }
+      }
+      return false;
+    }
+    
+    return nameLower.includes(searchQuery.toLowerCase());
+  });
 
   return (
     <aside 

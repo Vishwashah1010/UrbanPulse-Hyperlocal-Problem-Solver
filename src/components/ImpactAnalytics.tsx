@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { GoogleDriveFile } from '../types';
 import { getFileBlob } from '../lib/drive';
+import { getLeaderboard, LeaderboardUser } from '../lib/gamification';
 
 interface ImpactAnalyticsProps {
   files: GoogleDriveFile[];
@@ -90,11 +91,22 @@ const MTTR_DATA: Record<'24 Hours' | '7 Days' | '30 Days', MTTRRangeData> = {
   }
 };
 
-const MOCK_HEROES = [
-  { name: 'Arjun S.', title: 'Civic Champion', points: '2,450', reports: 14, avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100&q=80', badgeColor: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' },
-  { name: 'Priya K.', title: 'Active Observer', points: '1,820', reports: 9, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80', badgeColor: 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20' },
-  { name: 'Vikram M.', title: 'Green Guardian', points: '1,540', reports: 12, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80', badgeColor: 'bg-amber-500/10 text-amber-500 border border-amber-500/20' }
-];
+const getMockAvatar = (name: string, idx: number) => {
+  const avatars = [
+    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100&q=80',
+    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100&q=80',
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&h=100&q=80',
+    'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=100&h=100&q=80',
+    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&h=100&q=80'
+  ];
+  return avatars[idx % avatars.length];
+};
+
+const getBadgeColor = (level: string) => {
+  if (level === 'Community Guardian') return 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20';
+  if (level === 'Civic Champion') return 'bg-indigo-500/10 text-indigo-500 border border-indigo-500/20';
+  return 'bg-amber-500/10 text-amber-500 border border-amber-500/20';
+};
 
 function parseCSV(text: string): any[] {
   const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
@@ -148,6 +160,17 @@ export default function ImpactAnalytics({
   const [activePatrols, setActivePatrols] = useState(12);
   const [filterStatus, setFilterStatus] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>([]);
+
+  // Load leaderboard dynamic state
+  useEffect(() => {
+    setLeaderboard(getLeaderboard());
+    const handleUpdate = () => {
+      setLeaderboard(getLeaderboard());
+    };
+    window.addEventListener('profile-updated', handleUpdate);
+    return () => window.removeEventListener('profile-updated', handleUpdate);
+  }, []);
 
   // Load pothole reports from CSV
   useEffect(() => {
@@ -272,25 +295,25 @@ export default function ImpactAnalytics({
             </div>
 
             <div className="space-y-3.5">
-              {MOCK_HEROES.map((hero, idx) => (
+              {leaderboard.map((hero, idx) => (
                 <div key={hero.name} className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-900/60 transition-all border border-transparent hover:border-slate-200/50 dark:hover:border-slate-800/50">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <img src={hero.avatar} alt={hero.name} className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-800" />
+                      <img src={getMockAvatar(hero.name, idx)} alt={hero.name} className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-800" />
                       <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border border-white dark:border-slate-950">
                         {idx + 1}
                       </span>
                     </div>
                     <div>
                       <h4 className="text-xs font-bold leading-tight">{hero.name}</h4>
-                      <span className={`inline-block text-[8px] px-1 py-0.2 rounded mt-0.5 font-bold ${hero.badgeColor}`}>
-                        {hero.title}
+                      <span className={`inline-block text-[8px] px-1 py-0.2 rounded mt-0.5 font-bold ${getBadgeColor(hero.level)}`}>
+                        {hero.level}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs font-black text-amber-500">{hero.points} CKP</div>
-                    <span className="text-[9px] text-slate-400 dark:text-slate-500">{hero.reports} Reports</span>
+                    <div className="text-xs font-black text-amber-500">{hero.points.toLocaleString()} CKP</div>
+                    <span className="text-[9px] text-slate-400 dark:text-slate-500">{hero.badgesCount} Badges</span>
                   </div>
                 </div>
               ))}

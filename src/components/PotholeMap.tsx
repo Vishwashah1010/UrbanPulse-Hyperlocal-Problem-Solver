@@ -686,9 +686,10 @@ export default function PotholeMap({
           }
         }
 
+        const userEmail = localStorage.getItem('urbanpulse_current_user_email') || 'resident';
         uploadedImageId = await uploadBinaryFile(
           token,
-          `${newId}_hazard_photo.jpg`,
+          `${userEmail}_${newId}_hazard_photo.jpg`,
           folderId,
           selectedImageFile.type || 'image/jpeg',
           fileToUpload
@@ -702,6 +703,7 @@ export default function PotholeMap({
     }
 
     const categoryInfo = inferCategory(formTitle, formDescription);
+    const userEmail = localStorage.getItem('urbanpulse_current_user_email') || 'resident';
     const newRecord = {
       Id: newId,
       Title: formTitle.replace(/,/g, ' '),
@@ -714,7 +716,7 @@ export default function PotholeMap({
       ImageId: uploadedImageId,
       Upvotes: 0,
       Downvotes: 0,
-      ReporterId: token ? 'you' : 'resident',
+      ReporterId: userEmail,
       PredictedSLA: predictedSLA || 'Typically fixed within 48 hours',
       UrgencyLevel: urgencyLevel || formSeverity,
       TrafficImpact: trafficImpact || 'Minor',
