@@ -22,7 +22,8 @@ import {
   ChevronUp,
   Star,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  X
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { GoogleDriveFile, ProjectFolder, AuthUser } from '../types';
@@ -44,6 +45,8 @@ interface SidebarProps {
   darkMode: boolean;
   onToggleTheme: () => void;
   onUrgentAlert?: () => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 // Framer Motion staggered list variants
@@ -87,7 +90,9 @@ export default function Sidebar({
   onChangeView,
   darkMode,
   onToggleTheme,
-  onUrgentAlert
+  onUrgentAlert,
+  isOpen,
+  onClose
 }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [profile, setProfile] = useState<CivicProfile>(() => getUserCivicProfile());
@@ -184,7 +189,9 @@ export default function Sidebar({
   return (
     <aside 
       id="sidebar-container" 
-      className={`w-80 border-r flex flex-col h-full shrink-0 select-none transition-colors duration-300 ${
+      className={`fixed inset-y-0 left-0 z-50 lg:z-auto lg:static w-80 border-r flex flex-col h-full shrink-0 select-none transition-transform duration-300 ease-in-out ${
+        isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0'
+      } ${
         darkMode 
           ? 'bg-slate-950 border-slate-900 text-slate-100' 
           : 'bg-white border-slate-100 text-slate-800'
@@ -238,6 +245,20 @@ export default function Sidebar({
               id="refresh-folder-btn"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
+
+            {/* Mobile Close Button */}
+            <button
+              onClick={onClose}
+              className={`lg:hidden p-1.5 rounded-lg transition-colors cursor-pointer ${
+                darkMode
+                  ? 'hover:bg-slate-900 text-slate-400 hover:text-slate-205'
+                  : 'hover:bg-slate-50 text-slate-500 hover:text-slate-800'
+              }`}
+              title="Close menu"
+              id="mobile-sidebar-close-btn"
+            >
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
