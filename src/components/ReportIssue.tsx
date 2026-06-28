@@ -240,8 +240,15 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
           });
 
           if (!response.ok) {
-            const errData = await response.json();
-            throw new Error(errData.error || 'Failed to detect potholes.');
+            const errText = await response.text();
+            let errMsg = 'Failed to detect potholes.';
+            try {
+              const errJson = JSON.parse(errText);
+              errMsg = errJson.error || errMsg;
+            } catch (e) {
+              errMsg = errText || errMsg;
+            }
+            throw new Error(errMsg);
           }
 
           const data = await response.json();
