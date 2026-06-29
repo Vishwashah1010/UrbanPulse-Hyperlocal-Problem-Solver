@@ -188,14 +188,22 @@ Please draft a professional 3-sentence summary highlighting:
         return res.status(400).json({ error: "Image data is required (base64)." });
       }
 
-      // Parse base64
-      const matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-      if (!matches || matches.length !== 3) {
+      // Parse base64 without regex over the entire string to avoid CPU blocking on large payloads
+      if (!image.startsWith("data:")) {
         return res.status(400).json({ error: "Invalid base64 image format." });
       }
+      const commaIndex = image.indexOf(",");
+      if (commaIndex === -1) {
+        return res.status(400).json({ error: "Invalid base64 image format." });
+      }
+      const header = image.slice(0, commaIndex);
+      const base64Data = image.slice(commaIndex + 1);
 
-      const mimeType = matches[1];
-      const base64Data = matches[2];
+      const mimeMatch = header.match(/data:([^;]+);base64/);
+      if (!mimeMatch) {
+        return res.status(400).json({ error: "Invalid base64 image format." });
+      }
+      const mimeType = mimeMatch[1];
       const buffer = Buffer.from(base64Data, "base64");
 
       const tempDir = path.join(process.cwd(), "scratch", "temp");
@@ -203,15 +211,18 @@ Please draft a professional 3-sentence summary highlighting:
         fs.mkdirSync(tempDir, { recursive: true });
       }
 
-      const tempInputPath = path.join(tempDir, `input_${Date.now()}_${filename || "image.jpg"}`);
-      const tempOutputPath = path.join(tempDir, `output_${Date.now()}_${filename || "image.jpg"}`);
+      // Sanitize the file extension and use a clean timestamped filename to prevent space/quoting bugs
+      const ext = path.extname(filename || "image.jpg") || ".jpg";
+      const tempInputPath = path.join(tempDir, `input_${Date.now()}${ext}`);
+      const tempOutputPath = path.join(tempDir, `output_${Date.now()}${ext}`);
 
       fs.writeFileSync(tempInputPath, buffer);
 
-      const { exec } = await import("child_process");
+      const { execFile } = await import("child_process");
       const executeYOLO = () => {
         return new Promise<any>((resolve, reject) => {
-          exec(`python detect.py "${tempInputPath}" "${tempOutputPath}"`, (err, stdout, stderr) => {
+          // Use execFile to run python safely on Windows without shell interpolation or quoting issues
+          execFile("python", ["detect.py", tempInputPath, tempOutputPath], (err, stdout, stderr) => {
             if (err) {
               return reject(err);
             }

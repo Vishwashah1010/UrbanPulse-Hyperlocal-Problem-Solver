@@ -163,6 +163,46 @@ const userGpsIcon = L.divIcon({
   iconAnchor: [12, 12],
 });
 
+const resizeImage = (file: File, maxDim = 1024): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxDim) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          }
+        } else {
+          if (height > maxDim) {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(event.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = (err) => reject(err);
+    };
+    reader.onerror = (err) => reject(err);
+  });
+};
+
 export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewChange, darkMode = false }: ReportIssueProps) {
   // Map positioning state
   const [mapCenter, setMapCenter] = useState<[number, number]>([12.9716, 77.5946]); // Bengaluru default
@@ -251,88 +291,85 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
     setIsDetecting(true);
     setStatusMessage(null);
     try {
-      const reader = new FileReader();
-      reader.readAsDataURL(fileToDetect);
-      reader.onload = async () => {
-        const base64Image = reader.result as string;
-        try {
-          const response = await fetch('/api/detect-pothole', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: base64Image, filename: fileToDetect.name })
-          });
+      // Resize and compress the image client-side before sending to prevent timeouts & payload issues
+      const base64Image = await resizeImage(fileToDetect, 1024);
+      try {
+        const response = await fetch('/api/detect-pothole', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64Image, filename: fileToDetect.name })
+        });
 
-          if (!response.ok) {
-            const errText = await response.text();
-            let errMsg = 'Failed to detect potholes.';
-            try {
-              const errJson = JSON.parse(errText);
-              errMsg = errJson.error || errMsg;
-            } catch (e) {
-              errMsg = errText || errMsg;
-            }
-
-            // Check if it is a 404 (static) or ENOSPC (disk full on serverless host)
-            if (response.status === 404 || errMsg.includes('ENOSPC') || errMsg.toLowerCase().includes('no space left')) {
-              console.warn('Backend API failed or out of space, falling back to simulated client-side scan:', errMsg);
-              await new Promise(resolve => setTimeout(resolve, 1500));
-              const fakeData = {
-                provider: "Client-Side Simulated Scan (Fallback Mode)",
-                pothole_count: 2,
-                damage_percentage: 4.8,
-                severity: "High",
-                description: "Minor road surface damage detected. Found 2 localized pothole(s) covering approximately 4.8% of the road segment.",
-                title: "High Severity Road Hazard",
-                annotatedImage: base64Image
-              };
-              setDetectionResult(fakeData);
-              setLocalFilePreview(fakeData.annotatedImage);
-              setFormTitle(fakeData.title);
-              setFormDescription(fakeData.description);
-              setFormSeverity(fakeData.severity);
-              setIsDetecting(false);
-              return;
-            }
-
-            throw new Error(errMsg);
+        if (!response.ok) {
+          const errText = await response.text();
+          let errMsg = 'Failed to detect potholes.';
+          try {
+            const errJson = JSON.parse(errText);
+            errMsg = errJson.error || errMsg;
+          } catch (e) {
+            errMsg = errText || errMsg;
           }
 
-          const data = await response.json();
-          setDetectionResult(data);
-
-          // Update local preview to show the annotated image!
-          setLocalFilePreview(data.annotatedImage);
-
-          // Auto-fill form fields
-          setFormTitle(data.title || '');
-          setFormDescription(data.description || '');
-          if (data.severity) {
-            const sev = data.severity.charAt(0).toUpperCase() + data.severity.slice(1).toLowerCase();
-            if (['Critical', 'High', 'Moderate', 'Low'].includes(sev)) {
-              setFormSeverity(sev);
-            }
-          }
-          if (data.predictedSLA) {
-            setPredictedSLA(data.predictedSLA);
-          }
-          if (data.urgencyLevel) {
-            setUrgencyLevel(data.urgencyLevel);
-          }
-          if (data.trafficImpact) {
-            setTrafficImpact(data.trafficImpact);
+          // Check if it is a 404 (static) or ENOSPC (disk full on serverless host)
+          if (response.status === 404 || errMsg.includes('ENOSPC') || errMsg.toLowerCase().includes('no space left')) {
+            console.warn('Backend API failed or out of space, falling back to simulated client-side scan:', errMsg);
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            const fakeData = {
+              provider: "Client-Side Simulated Scan (Fallback Mode)",
+              pothole_count: 2,
+              damage_percentage: 4.8,
+              severity: "High",
+              description: "Minor road surface damage detected. Found 2 localized pothole(s) covering approximately 4.8% of the road segment.",
+              title: "High Severity Road Hazard",
+              annotatedImage: base64Image
+            };
+            setDetectionResult(fakeData);
+            setLocalFilePreview(fakeData.annotatedImage);
+            setFormTitle(fakeData.title);
+            setFormDescription(fakeData.description);
+            setFormSeverity(fakeData.severity);
+            setIsDetecting(false);
+            return;
           }
 
-          setStatusMessage({
-            type: 'success',
-            text: `AI Surface Scan complete (${data.provider}). Found ${data.pothole_count} pothole(s) covering ${data.damage_percentage}% of road segment.`
-          });
-        } catch (err: any) {
-          console.error(err);
-          setStatusMessage({ type: 'error', text: err.message || 'Image detection failed.' });
-        } finally {
-          setIsDetecting(false);
+          throw new Error(errMsg);
         }
-      };
+
+        const data = await response.json();
+        setDetectionResult(data);
+
+        // Update local preview to show the annotated image!
+        setLocalFilePreview(data.annotatedImage);
+
+        // Auto-fill form fields
+        setFormTitle(data.title || '');
+        setFormDescription(data.description || '');
+        if (data.severity) {
+          const sev = data.severity.charAt(0).toUpperCase() + data.severity.slice(1).toLowerCase();
+          if (['Critical', 'High', 'Moderate', 'Low'].includes(sev)) {
+            setFormSeverity(sev);
+          }
+        }
+        if (data.predictedSLA) {
+          setPredictedSLA(data.predictedSLA);
+        }
+        if (data.urgencyLevel) {
+          setUrgencyLevel(data.urgencyLevel);
+        }
+        if (data.trafficImpact) {
+          setTrafficImpact(data.trafficImpact);
+        }
+
+        setStatusMessage({
+          type: 'success',
+          text: `AI Surface Scan complete (${data.provider}). Found ${data.pothole_count} pothole(s) covering ${data.damage_percentage}% of road segment.`
+        });
+      } catch (err: any) {
+        console.error(err);
+        setStatusMessage({ type: 'error', text: err.message || 'Image detection failed.' });
+      } finally {
+        setIsDetecting(false);
+      }
     } catch (err: any) {
       console.error(err);
       setStatusMessage({ type: 'error', text: 'Failed to read image file.' });
@@ -600,15 +637,11 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
           let fileToUpload: Blob | File = localFile;
 
           if (detectionResult?.annotatedImage) {
-            const matches = detectionResult.annotatedImage.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-            if (matches && matches.length === 3) {
-              const byteCharacters = atob(matches[2]);
-              const byteNumbers = new Array(byteCharacters.length);
-              for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-              }
-              const byteArray = new Uint8Array(byteNumbers);
-              fileToUpload = new Blob([byteArray], { type: matches[1] || 'image/jpeg' });
+            try {
+              const blobRes = await fetch(detectionResult.annotatedImage);
+              fileToUpload = await blobRes.blob();
+            } catch (blobErr) {
+              console.warn("Failed to parse annotatedImage as blob via native fetch, using localFile fallback:", blobErr);
             }
           }
 

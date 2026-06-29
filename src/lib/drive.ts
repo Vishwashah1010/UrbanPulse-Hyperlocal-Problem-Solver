@@ -125,6 +125,28 @@ function saveSandboxFileContent(fileId: string, content: string, mimeType: strin
 }
 
 /**
+ * Robust fetch wrapper with timeout configuration to prevent network calls from hanging indefinitely
+ */
+async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 8000): Promise<Response> {
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(id);
+    return response;
+  } catch (error: any) {
+    clearTimeout(id);
+    if (error.name === 'AbortError') {
+      throw new Error(`Connection timed out after ${timeout}ms while requesting Google Drive APIs`);
+    }
+    throw error;
+  }
+}
+
+/**
  * Extracts descriptive error messages from Google API JSON responses
  */
 async function handleApiError(res: Response, fallbackPrefix: string): Promise<never> {
@@ -154,7 +176,7 @@ export async function findUrbanPulseFolder(token: string): Promise<ProjectFolder
   const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`;
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -190,7 +212,7 @@ export async function listFolderFiles(token: string, folderId: string): Promise<
   const url = `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,mimeType,size,modifiedTime,thumbnailLink,webViewLink,iconLink)&orderBy=name`;
 
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -230,7 +252,7 @@ export async function getFileBlob(token: string, fileId: string): Promise<Blob> 
 
   const url = `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`;
   try {
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
     if (!res.ok) {
@@ -264,7 +286,7 @@ async function uploadFile(
 ): Promise<string> {
   // Step 1: Create metadata
   const metadataUrl = 'https://www.googleapis.com/drive/v3/files';
-  const metaRes = await fetch(metadataUrl, {
+  const metaRes = await fetchWithTimeout(metadataUrl, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -286,7 +308,7 @@ async function uploadFile(
 
   // Step 2: Upload content
   const contentUrl = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`;
-  const contentRes = await fetch(contentUrl, {
+  const contentRes = await fetchWithTimeout(contentUrl, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -340,7 +362,7 @@ export async function uploadBinaryFile(
   try {
     // Step 1: Create metadata
     const metadataUrl = 'https://www.googleapis.com/drive/v3/files';
-    const metaRes = await fetch(metadataUrl, {
+    const metaRes = await fetchWithTimeout(metadataUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -362,7 +384,7 @@ export async function uploadBinaryFile(
 
     // Step 2: Upload media
     const contentUrl = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`;
-    const contentRes = await fetch(contentUrl, {
+    const contentRes = await fetchWithTimeout(contentUrl, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -413,7 +435,7 @@ export async function createUrbanPulseFolderAndSamples(token: string): Promise<P
   try {
     // 1. Create Folder
     const folderUrl = 'https://www.googleapis.com/drive/v3/files';
-    const folderRes = await fetch(folderUrl, {
+    const folderRes = await fetchWithTimeout(folderUrl, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -474,7 +496,7 @@ export async function updateFileContent(token: string, fileId: string, content: 
 
   const contentUrl = `https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`;
   try {
-    const contentRes = await fetch(contentUrl, {
+    const contentRes = await fetchWithTimeout(contentUrl, {
       method: 'PATCH',
       headers: {
         Authorization: `Bearer ${token}`,

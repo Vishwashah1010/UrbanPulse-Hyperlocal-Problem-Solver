@@ -27,6 +27,13 @@ def main():
             print(json.dumps({"success": False, "error": f"Failed to load image at {image_path}"}))
             return
 
+        # Resize image if it is too large (e.g., max dimension > 1280) to speed up YOLO and save memory
+        max_dim = 1280
+        h, w = frame.shape[:2]
+        if max(h, w) > max_dim:
+            scale = max_dim / max(h, w)
+            frame = cv2.resize(frame, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+
         # Predict
         results = model.predict(source=frame, imgsz=640, conf=0.25, verbose=False)
         result = results[0]
