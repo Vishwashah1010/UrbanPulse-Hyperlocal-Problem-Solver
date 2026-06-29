@@ -245,8 +245,8 @@ export default function FilePreview({
       </div>
 
       {/* Main Preview Screen */}
-      <div className="flex-1 overflow-y-auto p-6 flex flex-col min-h-0">
-        <div className="bg-white dark:bg-slate-950/40 border border-slate-100 dark:border-slate-900 rounded-xl shadow-xs p-6 flex-1 flex flex-col overflow-hidden transition-colors duration-300">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 flex flex-col min-h-0">
+        <div className="bg-white dark:bg-slate-950/40 border border-slate-100 dark:border-slate-900 rounded-xl shadow-xs p-3 sm:p-6 flex-1 flex flex-col overflow-y-auto lg:overflow-hidden transition-colors duration-300">
           {isMarkdown && fileContent && (
             <div className="prose max-w-none text-slate-800 dark:text-slate-200">
               <MarkdownRenderer text={fileContent} />
@@ -254,7 +254,7 @@ export default function FilePreview({
           )}
 
           {isCSV && csvData && fileContent && (
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden">
               {activeTab === 'preview' ? (
                 <CsvDashboardView 
                   csvData={csvData} 
@@ -275,7 +275,7 @@ export default function FilePreview({
           )}
 
           {isJSON && fileContent && (
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden">
               {activeTab === 'preview' ? (
                 <JsonDashboardView rawText={fileContent} darkMode={darkMode} />
               ) : (
@@ -766,7 +766,7 @@ function JsonDashboardView({ rawText, darkMode = false }: { rawText: string, dar
     return (
       <div className="flex-1 overflow-y-auto pr-1 select-none space-y-5">
         {/* Bento Grid Header */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="p-4 bg-indigo-50/20 dark:bg-indigo-950/20 border border-indigo-100/70 dark:border-indigo-900/40 rounded-xl flex items-center gap-3">
             <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 rounded-lg">
               <Users className="w-5 h-5" />
@@ -797,7 +797,7 @@ function JsonDashboardView({ rawText, darkMode = false }: { rawText: string, dar
         </div>
 
         {/* Charts block */}
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Modal Share Pie Chart */}
           <div className="border border-slate-100 dark:border-slate-800/80 p-4 rounded-xl flex flex-col h-64 bg-white dark:bg-slate-950/20">
             <h4 className="text-[10px] font-bold text-slate-500 dark:text-slate-450 uppercase tracking-wider mb-2 flex items-center gap-1.5">
