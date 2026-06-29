@@ -87,6 +87,29 @@ function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => v
   return null;
 }
 
+function MapInvalidator() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    if (!container) return;
+
+    map.invalidateSize();
+
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(() => {
+        map.invalidateSize();
+      });
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [map]);
+  return null;
+}
+
 const inferCategory = (title: string = '', description: string = '') => {
   const text = `${title} ${description}`.toLowerCase();
   if (text.includes('pothole') || text.includes('hole') || text.includes('crater') || text.includes('pit') || text.includes('cavity') || text.includes('patch') || text.includes('bump')) {
@@ -775,6 +798,7 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
               className="w-full h-full"
               zoomControl={true}
             >
+              <MapInvalidator />
               <ChangeView center={mapCenter} zoom={mapZoom} />
               <MapClickHandler onClick={handleMapClick} />
 

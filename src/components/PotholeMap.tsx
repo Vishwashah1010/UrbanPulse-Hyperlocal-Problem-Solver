@@ -93,6 +93,29 @@ function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => v
   return null;
 }
 
+function MapInvalidator() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    if (!container) return;
+
+    map.invalidateSize();
+
+    const observer = new ResizeObserver(() => {
+      requestAnimationFrame(() => {
+        map.invalidateSize();
+      });
+    });
+
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [map]);
+  return null;
+}
+
 const inferCategory = (title: string = '', description: string = '') => {
   const text = `${title} ${description}`.toLowerCase();
   if (text.includes('pothole') || text.includes('hole') || text.includes('crater') || text.includes('pit') || text.includes('cavity') || text.includes('patch') || text.includes('bump')) {
@@ -922,6 +945,7 @@ export default function PotholeMap({
           zoomControl={true}
           style={{ width: '100%', height: '100%', zIndex: 1 }}
         >
+          <MapInvalidator />
           <ChangeView center={[mapCenter.lat, mapCenter.lng]} zoom={mapZoom} />
           <MapClickHandler onClick={handleMapClick} />
           
