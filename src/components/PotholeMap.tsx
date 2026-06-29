@@ -318,11 +318,21 @@ export default function PotholeMap({
           });
 
           if (!response.ok) {
-            if (response.status === 404) {
-              console.warn('Backend API not found, falling back to simulated client-side scan.');
+            const errText = await response.text();
+            let errMsg = 'Failed to detect potholes.';
+            try {
+              const errJson = JSON.parse(errText);
+              errMsg = errJson.error || errMsg;
+            } catch (e) {
+              errMsg = errText || errMsg;
+            }
+
+            // Check if it is a 404 (static) or ENOSPC (disk full on serverless host)
+            if (response.status === 404 || errMsg.includes('ENOSPC') || errMsg.toLowerCase().includes('no space left')) {
+              console.warn('Backend API failed or out of space, falling back to simulated client-side scan:', errMsg);
               await new Promise(resolve => setTimeout(resolve, 1500));
               const fakeData = {
-                provider: "Client-Side Simulated Scan (Static Mode)",
+                provider: "Client-Side Simulated Scan (Fallback Mode)",
                 pothole_count: 2,
                 damage_percentage: 4.8,
                 severity: "High",
@@ -340,14 +350,6 @@ export default function PotholeMap({
               return;
             }
 
-            const errText = await response.text();
-            let errMsg = 'Failed to detect potholes.';
-            try {
-              const errJson = JSON.parse(errText);
-              errMsg = errJson.error || errMsg;
-            } catch (e) {
-              errMsg = errText || errMsg;
-            }
             throw new Error(errMsg);
           }
 
