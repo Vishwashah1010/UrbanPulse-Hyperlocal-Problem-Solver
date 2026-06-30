@@ -105,7 +105,50 @@ function getSandboxFileContent(fileId: string): string {
 
 function saveSandboxFileContent(fileId: string, content: string, mimeType: string) {
   initializeSandbox();
-  localStorage.setItem(`urbanpulse-sandbox-file-${fileId}`, content);
+  try {
+    localStorage.setItem(`urbanpulse-sandbox-file-${fileId}`, content);
+  } catch (e: any) {
+    // Check if it's a QuotaExceededError
+    if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22)) {
+      console.warn("Storage quota exceeded. Cleaning up older sandbox images to free up space.");
+      const imgKeys: { key: string; time: number }[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('urbanpulse-sandbox-file-sandbox-img-')) {
+          const idPart = key.replace('urbanpulse-sandbox-file-sandbox-img-', '');
+          const time = parseInt(idPart) || 0;
+          imgKeys.push({ key, time });
+        }
+      }
+      
+      // Sort oldest first
+      imgKeys.sort((a, b) => a.time - b.time);
+      
+      let success = false;
+      for (const item of imgKeys) {
+        localStorage.removeItem(item.key);
+        const files = getSandboxFiles();
+        const fileIdPart = item.key.replace('urbanpulse-sandbox-file-', '');
+        const updatedFiles = files.filter(f => f.id !== fileIdPart);
+        localStorage.setItem('urbanpulse-sandbox-files', JSON.stringify(updatedFiles));
+        
+        try {
+          localStorage.setItem(`urbanpulse-sandbox-file-${fileId}`, content);
+          success = true;
+          console.log(`Successfully freed up space by deleting old sandbox image ${item.key}`);
+          break;
+        } catch (retryErr) {
+          // Keep deleting older images
+        }
+      }
+      
+      if (!success) {
+        throw new Error("Local sandbox storage is completely full and cannot be written to. Please clear some disk space on your computer.");
+      }
+    } else {
+      throw e;
+    }
+  }
   
   // update file size in file list
   const files = getSandboxFiles();
@@ -121,7 +164,11 @@ function saveSandboxFileContent(fileId: string, content: string, mimeType: strin
       size: String(content.length)
     });
   }
-  localStorage.setItem('urbanpulse-sandbox-files', JSON.stringify(files));
+  try {
+    localStorage.setItem('urbanpulse-sandbox-files', JSON.stringify(files));
+  } catch (e: any) {
+    console.error("Failed to save file index:", e);
+  }
 }
 
 /**
@@ -341,18 +388,22 @@ export async function uploadBinaryFile(
     return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64data = reader.result as string;
-        saveSandboxFileContent(fileId, base64data, mimeType);
-        
-        // update file list with the real name
-        const files = getSandboxFiles();
-        const fileIndex = files.findIndex(f => f.id === fileId);
-        if (fileIndex !== -1) {
-          files[fileIndex].name = name;
+        try {
+          const base64data = reader.result as string;
+          saveSandboxFileContent(fileId, base64data, mimeType);
+          
+          // update file list with the real name
+          const files = getSandboxFiles();
+          const fileIndex = files.findIndex(f => f.id === fileId);
+          if (fileIndex !== -1) {
+            files[fileIndex].name = name;
+          }
+          localStorage.setItem('urbanpulse-sandbox-files', JSON.stringify(files));
+          
+          resolve(fileId);
+        } catch (err) {
+          reject(err);
         }
-        localStorage.setItem('urbanpulse-sandbox-files', JSON.stringify(files));
-        
-        resolve(fileId);
       };
       reader.onerror = reject;
       reader.readAsDataURL(fileBlob);
@@ -404,18 +455,22 @@ export async function uploadBinaryFile(
     return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64data = reader.result as string;
-        saveSandboxFileContent(fileId, base64data, mimeType);
-        
-        // update file list with the real name
-        const files = getSandboxFiles();
-        const fileIndex = files.findIndex(f => f.id === fileId);
-        if (fileIndex !== -1) {
-          files[fileIndex].name = name;
+        try {
+          const base64data = reader.result as string;
+          saveSandboxFileContent(fileId, base64data, mimeType);
+          
+          // update file list with the real name
+          const files = getSandboxFiles();
+          const fileIndex = files.findIndex(f => f.id === fileId);
+          if (fileIndex !== -1) {
+            files[fileIndex].name = name;
+          }
+          localStorage.setItem('urbanpulse-sandbox-files', JSON.stringify(files));
+          
+          resolve(fileId);
+        } catch (err) {
+          reject(err);
         }
-        localStorage.setItem('urbanpulse-sandbox-files', JSON.stringify(files));
-        
-        resolve(fileId);
       };
       reader.onerror = reject;
       reader.readAsDataURL(fileBlob);

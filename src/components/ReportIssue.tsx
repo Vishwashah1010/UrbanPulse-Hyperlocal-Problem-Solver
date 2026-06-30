@@ -1186,21 +1186,38 @@ export default function ReportIssue({ token, folderId, onRefresh, onSuccessViewC
             </div>
 
             {/* Submission triggers */}
-            <div className="pt-2 mt-auto">
+            <div className="pt-2 mt-auto flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFormTitle('');
+                  setFormDescription('');
+                  setFormSeverity('High');
+                  setReportCoords(null);
+                  handleClearImage();
+                  setStatusMessage({ type: 'success', text: 'Draft report has been successfully discarded.' });
+                  setTimeout(() => setStatusMessage(null), 3000);
+                }}
+                disabled={isSaving || (!formTitle && !formDescription && !reportCoords && !localFilePreview && !selectedDriveImageId)}
+                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-800"
+              >
+                <span>Discard Draft</span>
+              </button>
+
               <button
                 type="submit"
                 disabled={isSaving}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="flex-[2] py-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-md transition-colors flex items-center justify-center gap-2 cursor-pointer"
               >
                 {isSaving ? (
                   <>
                     <Loader className="w-4 h-4 animate-spin" />
-                    <span>Synchronizing Secure Payload to Drive...</span>
+                    <span>Synchronizing...</span>
                   </>
                 ) : (
                   <>
                     <CheckCircle className="w-4 h-4" />
-                    <span>Submit Secure UrbanPulse Report</span>
+                    <span>Submit Report</span>
                   </>
                 )}
               </button>

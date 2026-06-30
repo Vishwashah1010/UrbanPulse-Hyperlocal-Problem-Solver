@@ -40,7 +40,8 @@ import {
   Clock,
   Zap,
   Car,
-  History
+  History,
+  Trash
 } from 'lucide-react';
 import { GoogleDriveFile } from '../types';
 import { uploadBinaryFile, getFileBlob, listFolderFiles, getFileText, updateFileContent } from '../lib/drive';
@@ -191,6 +192,7 @@ export default function PotholeMap({
 }: PotholeMapProps) {
   const [reports, setReports] = useState<any[]>([]);
   const [selectedReport, setSelectedReport] = useState<any | null>(null);
+  const userEmail = localStorage.getItem('urbanpulse_current_user_email') || 'resident';
   
   // Filtering & View state
   const [selectedSeverity, setSelectedSeverity] = useState<string>('All');
@@ -705,6 +707,37 @@ export default function PotholeMap({
     if (triggeredResolution) {
       // Award +100 CKP for resolving issue
       logResolutionEarned();
+    }
+  };
+
+  const handleDeleteReport = async (reportId: string) => {
+    if (!window.confirm("Are you sure you want to permanently delete this report?")) {
+      return;
+    }
+    const updatedList = reports.filter(r => r.Id !== reportId);
+    try {
+      await compileAndSaveToDrive(updatedList);
+      
+      // Update reports.csv if Drive token and folder are active
+      if (token && folderId) {
+        const filesList = await listFolderFiles(token, folderId);
+        const reportsFile = filesList.find(f => f.name?.toLowerCase() === 'reports.csv');
+        if (reportsFile) {
+          const headerRow = 'Id,Title,Latitude,Longitude,Severity,Status,Description,ReportedAt,ImageId,Upvotes,Downvotes,ReporterId,PredictedSLA,UrgencyLevel,TrafficImpact,StatusHistory';
+          const bodyRows = updatedList.map(r => {
+            return `${r.Id},${r.Title || ''},${r.Latitude || ''},${r.Longitude || ''},${r.Severity || ''},${r.Status || ''},${r.Description || ''},${r.ReportedAt || ''},${r.ImageId || ''},${r.Upvotes ?? 0},${r.Downvotes ?? 0},${r.ReporterId || 'admin'},${r.PredictedSLA || ''},${r.UrgencyLevel || ''},${r.TrafficImpact || ''},${r.StatusHistory || ''}`;
+          });
+          const csvContent = [headerRow, ...bodyRows].join('\n');
+          await updateFileContent(token, reportsFile.id, csvContent, 'text/csv');
+        }
+      }
+      
+      if (selectedReport && selectedReport.Id === reportId) {
+        setSelectedReport(null);
+      }
+    } catch (err: any) {
+      console.error("Failed to delete report:", err);
+      alert("Failed to delete report: " + err.message);
     }
   };
 
@@ -1246,21 +1279,32 @@ export default function PotholeMap({
                   </div>
 
                   {/* Remediation Controls */}
-                  <div className="mt-auto pt-4 border-t border-slate-100 flex gap-2">
-                    {selectedReport.Status === 'Reported' && (
+                  <div className="mt-auto pt-4 border-t border-slate-100/80 dark:border-slate-800/80 flex flex-col gap-2">
+                    <div className="flex gap-2 w-full">
+                      {selectedReport.Status === 'Reported' && (
+                        <button
+                          onClick={() => handleUpdateStatus(selectedReport.Id, 'In Progress')}
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-xs cursor-pointer text-center"
+                        >
+                          Begin Remediation
+                        </button>
+                      )}
+                      {selectedReport.Status !== 'Resolved' && (
+                        <button
+                          onClick={() => handleUpdateStatus(selectedReport.Id, 'Resolved')}
+                          className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-xs cursor-pointer text-center"
+                        >
+                          Mark Resolved
+                        </button>
+                      )}
+                    </div>
+                    {selectedReport.ReporterId === userEmail && (
                       <button
-                        onClick={() => handleUpdateStatus(selectedReport.Id, 'In Progress')}
-                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-xs cursor-pointer text-center animate-fade-in"
+                        onClick={() => handleDeleteReport(selectedReport.Id)}
+                        className="w-full bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/40 text-rose-600 dark:text-rose-450 text-xs font-bold py-2.5 rounded-xl transition-all border border-rose-200 dark:border-rose-900/40 cursor-pointer text-center flex items-center justify-center gap-1.5"
                       >
-                        Begin Remediation
-                      </button>
-                    )}
-                    {selectedReport.Status !== 'Resolved' && (
-                      <button
-                        onClick={() => handleUpdateStatus(selectedReport.Id, 'Resolved')}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2.5 rounded-xl transition-all shadow-xs cursor-pointer text-center animate-fade-in"
-                      >
-                        Mark Resolved
+                        <Trash className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Delete My Report</span>
                       </button>
                     )}
                   </div>
@@ -1387,6 +1431,22 @@ export default function PotholeMap({
                               {Number(r.Upvotes || 0)}
                             </span>
                           </div>
+
+                          {/* Account-wise Delete Option */}
+                          {r.ReporterId === userEmail && (
+                            <div className="flex flex-col items-center justify-center shrink-0 border-l border-slate-100 dark:border-slate-800/80 pl-2.5 mr-1">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteReport(r.Id);
+                                }}
+                                className="p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 text-slate-450 hover:text-rose-600 dark:text-slate-550 dark:hover:text-rose-400 transition-colors cursor-pointer"
+                                title="Delete your report"
+                              >
+                                <Trash className="w-3.5 h-3.5 text-rose-500" />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       ))}
                       {filteredReports.length === 0 && (
