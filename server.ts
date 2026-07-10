@@ -9,7 +9,7 @@ dotenv.config();
 
 async function startServer() {
   const app = express();
-  const PORT = process.env.PORT || 3000;
+  const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
@@ -330,6 +330,57 @@ Please draft a professional 3-sentence summary highlighting:
     } catch (error: any) {
       console.error("Pothole detection failed:", error);
       res.status(500).json({ error: error.message || "Failed to process image detection." });
+    }
+  });
+
+  app.post("/api/chat", async (req, res) => {
+    const { message, history } = req.body;
+    
+    if (!apiKey) {
+      // Local fallback responses based on keywords
+      const msg = (message || "").toLowerCase();
+      let reply = "I am the UrbanPulse Assistant! I can help you understand how to use the app, including how to report road hazards, sync with Google Drive, check civic impact analytics, and view telemetry metrics. What would you like to know?";
+      
+      if (msg.includes("report") || msg.includes("hazard") || msg.includes("pothole") || msg.includes("register")) {
+        reply = "To report a new road hazard or pothole:\n1. Click the 'Report Issue' tab in the sidebar.\n2. Fill out the Hazard Registry Form (title, description, and target category).\n3. Click 'Select Hazard Photo' to upload a base64 image.\n4. Click 'Trigger Detection' to run YOLOv8 pothole detection (or Gemini fallback) to auto-fill the severity and damage statistics.\n5. Select a location on the interactive map.\n6. Click 'Submit Road Hazard Report' to register it.";
+      } else if (msg.includes("drive") || msg.includes("sync") || msg.includes("google") || msg.includes("sandbox")) {
+        reply = "UrbanPulse features a Google Drive Sandbox:\n- If connected to Google, it automatically seeds or searches for a folder named 'UrbanPulse' in your Drive.\n- It uploads CSV and JSON files (like telemetry logs and district metrics) to sync details in real-time.\n- If not signed in, you can operate inside a Local Sandbox environment to test all features.";
+      } else if (msg.includes("view") || msg.includes("tab") || msg.includes("metric") || msg.includes("dashboard") || msg.includes("analytics") || msg.includes("impact")) {
+        reply = "The app contains four main views:\n1. **File Previewer**: View and live-edit telemetry CSVs or district JSONs synced with Google Drive.\n2. **Metrics Dashboard**: View total reported issues, status indicators, and SLA averages.\n3. **Report Issue**: Interactive form with AI image detection and map registry.\n4. **Civic Impact Analytics**: Interactive visualizations showing hazard severity, regional resolution metrics, and dispatch logs.";
+      }
+      
+      return res.json({ reply, isMock: true });
+    }
+
+    try {
+      if (!ai) {
+        throw new Error("Gemini AI client is not initialized.");
+      }
+
+      const chatHistory = (history || []).map((h: any) => ({
+        role: h.role === "user" ? "user" : "model",
+        parts: [{ text: h.text }]
+      }));
+      
+      const chat = ai.chats.create({
+        model: "gemini-3.5-flash",
+        history: [
+          {
+            role: "user",
+            parts: [{ text: "You are a helpful AI Guide for UrbanPulse, a hyperlocal civil issue and road hazard tracking application. UrbanPulse integrates with Google Drive to preview project files, lets estimators and workers report/classify road hazards, run pothole detection (using local YOLOv8 models or Gemini Vision fallback), and analyze regional impact metrics. Keep your responses helpful, professional, and concise." }]
+          },
+          ...chatHistory
+        ]
+      });
+
+      const response = await chat.sendMessage({ message });
+      return res.json({ reply: response.text || "I am here to help!", isMock: false });
+    } catch (err: any) {
+      console.error("Gemini Assistant Error:", err.message);
+      return res.json({ 
+        reply: `I am currently operating in fallback mode due to: ${err.message}. How can I assist you with using UrbanPulse features?`,
+        isMock: true 
+      });
     }
   });
 

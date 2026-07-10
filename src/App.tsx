@@ -31,6 +31,7 @@ import FilePreview from './components/FilePreview';
 import MetricsDashboard from './components/MetricsDashboard';
 import ReportIssue from './components/ReportIssue';
 import ImpactAnalytics from './components/ImpactAnalytics';
+import ApiAssistant from './components/ApiAssistant';
 
 
 
@@ -671,6 +672,7 @@ export default function App() {
           />
         )}
       </main>
+      <ApiAssistant />
     </div>
   );
 }
